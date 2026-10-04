@@ -12,10 +12,19 @@
     not used because it breaks on AGP 9.
   - `release`: creates a GitHub Release with `m3mangadex-vX.Y.Z-{debug,release}.apk`.
 
+## Versioning
+
+`0.<milestone>.<build>` while a milestone is in progress (M3 → `0.3.0`, `0.3.1`, …). When a
+milestone is finished, the next one starts at `0.<n+1>.0`. `1.0.0` comes once every milestone is
+done and tested.
+
+Only `m3mangadex.versionName` in `gradle.properties` is edited. Play's versionCode is derived
+from it as `major × 1,000,000 + minor × 1,000 + patch`, e.g. 0.3.12 → 3012 and 1.0.0 → 1000000,
+so it always increases with the version. Minor and patch must stay below 1000; the build fails otherwise.
+
 ## Cutting a release
 
-1. Bump `m3mangadex.versionName` and `m3mangadex.versionCode` in `gradle.properties`. Play rejects a
-   versionCode it has already seen. Commit and push.
+1. Bump `m3mangadex.versionName` in `gradle.properties`, then commit and push.
 2. `git tag vX.Y.Z && git push origin vX.Y.Z`
 
 ## Signing

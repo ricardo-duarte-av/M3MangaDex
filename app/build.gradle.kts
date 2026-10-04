@@ -27,14 +27,23 @@ val releaseKeyPassword = signingValue("keyPassword", "KEY_PASSWORD")
 val hasReleaseSigning =
     listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { it != null }
 
+// One number to bump: versionName is the milestone version (0.<milestone>.<build>; 1.0.0 once
+// everything is done), and Play's versionCode is derived from it so it always grows with it.
+val appVersionName = providers.gradleProperty("m3mangadex.versionName").get()
+val appVersionCode =
+    appVersionName.split(".").map(String::toInt).let { (major, minor, patch) ->
+        require(minor < 1000 && patch < 1000) { "versionName $appVersionName: minor and patch must be < 1000" }
+        major * 1_000_000 + minor * 1_000 + patch
+    }
+
 android {
     namespace = "pt.aguiarvieira.m3mangadex"
 
     defaultConfig {
         applicationId = "pt.aguiarvieira.m3mangadex"
         // CI checks a `vX.Y.Z` tag against versionName (gradle.properties).
-        versionCode = providers.gradleProperty("m3mangadex.versionCode").get().toInt()
-        versionName = providers.gradleProperty("m3mangadex.versionName").get()
+        versionCode = appVersionCode
+        versionName = appVersionName
     }
 
     signingConfigs {

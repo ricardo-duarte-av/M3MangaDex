@@ -18,6 +18,12 @@ All versions are in `gradle/libs.versions.toml`.
   material3-adaptive is 1.4.0-alpha02 and Navigation 3 is 1.3.0-alpha01.
 - JDK 21 runs the build; the code targets JVM 17.
 
+## Versioning
+
+Use `0.<milestone>.<build>` while milestone M<n> is in progress, and `1.0.0` when everything is done.
+Only `m3mangadex.versionName` (in `gradle.properties`) is bumped; versionCode is derived from it.
+Releases are cut by pushing a `v<versionName>` tag. See `RELEASE.md`.
+
 ## Gotchas (don't re-discover)
 
 - **AGP 9 has built-in Kotlin.** Never apply `org.jetbrains.kotlin.android`. The Compose compiler plugin is

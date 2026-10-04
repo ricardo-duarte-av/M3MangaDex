@@ -48,6 +48,9 @@ Copy and rename the convention plugins from `xmuks/build-logic/convention/src/ma
 
 ## Milestones
 
+Versioning: `0.<n>.x` while M<n> is in progress (M0 → 0.0.x, M1 → 0.1.x, …), and `1.0.0` when
+everything is done and tested. The details are in RELEASE.md.
+
 ### M0 — Scaffold & CI (implement first)
 1. Gradle skeleton: `settings.gradle.kts` (includeBuild build-logic, typesafe accessors, `FAIL_ON_PROJECT_REPOS`), version catalog, wrapper, `gradle.properties` with `m3mangadex.versionName` and `versionCode`.
 2. `app` with applicationId `pt.aguiarvieira.m3mangadex` (debug builds add `.debug`), namespace equal to the applicationId, and release builds with R8 minify and resource shrinking.
