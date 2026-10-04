@@ -1,0 +1,53 @@
+# Builds on detekt's default config (buildUponDefaultConfig = true); only deviations live here.
+config:
+  validation: true
+  warningsAsErrors: true
+
+naming:
+  FunctionNaming:
+    # Composables are PascalCase.
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  TooManyFunctions:
+    # Room DAOs are one annotated function per SQL statement by design.
+    ignoreAnnotated: ['Dao']
+    allowedFunctionsPerClass: 15
+    allowedFunctionsPerObject: 15
+    allowedFunctionsPerFile: 15
+  CyclomaticComplexMethod:
+    ignoreSimpleWhenEntries: true
+  LongParameterList:
+    # Composables legitimately take many parameters (modifier, state, callbacks).
+    ignoreAnnotated: ['Composable']
+  LongMethod:
+    ignoreAnnotated: ['Composable']
+
+style:
+  MaxLineLength:
+    # Tests carry inline JSON fixtures that read better on one line.
+    excludes: ['**/test/**']
+  ReturnCount:
+    max: 3
+    excludeGuardClauses: true
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotated: ['Composable', 'Preview']
+    excludes: ['**/test/**', '**/theme/**']
+  UnusedPrivateFunction:
+    # @Preview functions are only referenced by tooling.
+    ignoreAnnotated: ['Preview']
+
+Compose:
+  ModifierMissing:
+    active: true
+  ModifierReused:
+    active: true
+  ModifierNotUsedAtRoot:
+    active: true
+  ViewModelForwarding:
+    active: true
+  CompositionLocalAllowlist:
+    active: true
+    allowedCompositionLocals: []

@@ -1,0 +1,88 @@
+import java.util.Properties
+
+plugins {
+    alias(libs.plugins.m3mangadex.android.application)
+    alias(libs.plugins.m3mangadex.android.compose)
+    alias(libs.plugins.m3mangadex.hilt)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+// Release signing: keystore.properties (local, gitignored) first, then environment variables (CI).
+// With neither, the release build is produced unsigned instead of failing.
+val keystoreProperties =
+    Properties().apply {
+        val file = rootProject.file("keystore.properties")
+        if (file.exists()) file.inputStream().use(::load)
+    }
+
+fun signingValue(
+    propKey: String,
+    envKey: String,
+): String? = keystoreProperties.getProperty(propKey) ?: System.getenv(envKey)?.takeIf { it.isNotBlank() }
+
+val releaseStoreFile = signingValue("storeFile", "KEYSTORE_FILE")
+val releaseStorePassword = signingValue("storePassword", "KEYSTORE_PASSWORD")
+val releaseKeyAlias = signingValue("keyAlias", "KEY_ALIAS")
+val releaseKeyPassword = signingValue("keyPassword", "KEY_PASSWORD")
+val hasReleaseSigning =
+    listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { it != null }
+
+android {
+    namespace = "pt.aguiarvieira.m3mangadex"
+
+    defaultConfig {
+        applicationId = "pt.aguiarvieira.m3mangadex"
+        // CI checks a `vX.Y.Z` tag against versionName (gradle.properties).
+        versionCode = providers.gradleProperty("m3mangadex.versionCode").get().toInt()
+        versionName = providers.gradleProperty("m3mangadex.versionName").get()
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            // Installs beside the Play build.
+            applicationIdSuffix = ".debug"
+        }
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    packaging {
+        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    }
+}
+
+dependencies {
+    implementation(projects.core.designsystem)
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.androidx.compose.material3.adaptive.navigation3)
+    implementation(libs.androidx.compose.material3.navigation.suite)
+    implementation(libs.kotlinx.serialization.json)
+}

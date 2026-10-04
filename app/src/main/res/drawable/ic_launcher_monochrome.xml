@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An open book: two pages, inside the adaptive icon's 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M32,36 Q42,34 52,39 L52,76 Q42,71 32,73 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M56,39 Q66,34 76,36 L76,73 Q66,71 56,76 Z" />
+</vector>

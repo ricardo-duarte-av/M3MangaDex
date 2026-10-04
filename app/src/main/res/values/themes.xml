@@ -1,0 +1,16 @@
+<resources>
+    <!-- Shown by the SplashScreen API while the process starts; hands off to Theme.M3MangaDex. -->
+    <style name="Theme.M3MangaDex.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.M3MangaDex</item>
+    </style>
+
+    <!-- Compose draws everything; the window only needs a day/night background so cold starts
+         never flash white in dark mode. -->
+    <style name="Theme.M3MangaDex" parent="android:Theme.DeviceDefault.DayNight">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/splash_background</item>
+    </style>
+</resources>
