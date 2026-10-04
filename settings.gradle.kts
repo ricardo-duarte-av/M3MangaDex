@@ -26,4 +26,12 @@ rootProject.name = "M3MangaDex"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include(":app")
+include(":core:model")
+include(":core:network")
+include(":core:datastore")
+include(":core:data")
 include(":core:designsystem")
+include(":feature:browse")
+include(":feature:search")
+include(":feature:manga")
+include(":feature:settings")

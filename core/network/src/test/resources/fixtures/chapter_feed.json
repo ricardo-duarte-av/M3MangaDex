@@ -1,0 +1,117 @@
+{
+ "result": "ok",
+ "response": "collection",
+ "data": [
+  {
+   "id": "f7d2cb75-83b2-426b-bdbd-032870c30abb",
+   "type": "chapter",
+   "attributes": {
+    "volume": "1",
+    "chapter": "15",
+    "title": "Dungeon Boss",
+    "translatedLanguage": "en",
+    "externalUrl": "https://www.webnovel.com/comic/15227640605485101/45196977385821028",
+    "isUnavailable": false,
+    "publishAt": "2023-09-05T17:14:12+00:00",
+    "readableAt": "2023-09-05T17:14:12+00:00",
+    "createdAt": "2023-09-05T17:14:12+00:00",
+    "updatedAt": "2023-09-05T17:14:12+00:00",
+    "version": 2,
+    "pages": 0
+   },
+   "relationships": [
+    {
+     "id": "0b52e04c-d2ff-49cc-8b49-fdb4443bf544",
+     "type": "scanlation_group",
+     "attributes": {
+      "name": "Webnovel",
+      "official": true
+     }
+    },
+    {
+     "id": "32d76d19-8a05-4db0-9fc2-e0b0648fe9d0",
+     "type": "manga"
+    },
+    {
+     "id": "3f1f10cc-af14-4de1-bc4c-0439c3fd6e5b",
+     "type": "user"
+    }
+   ]
+  },
+  {
+   "id": "dc43e051-6cd0-4ee5-877b-3bdfc0d08656",
+   "type": "chapter",
+   "attributes": {
+    "volume": "1",
+    "chapter": "14",
+    "title": "Wolf Slayer",
+    "translatedLanguage": "en",
+    "externalUrl": "https://www.webnovel.com/comic/15227640605485101/45196920192288234",
+    "isUnavailable": false,
+    "publishAt": "2023-09-05T17:14:11+00:00",
+    "readableAt": "2023-09-05T17:14:11+00:00",
+    "createdAt": "2023-09-05T17:14:10+00:00",
+    "updatedAt": "2023-09-05T17:14:11+00:00",
+    "version": 2,
+    "pages": 0
+   },
+   "relationships": [
+    {
+     "id": "0b52e04c-d2ff-49cc-8b49-fdb4443bf544",
+     "type": "scanlation_group",
+     "attributes": {
+      "name": "Webnovel",
+      "official": true
+     }
+    },
+    {
+     "id": "32d76d19-8a05-4db0-9fc2-e0b0648fe9d0",
+     "type": "manga"
+    },
+    {
+     "id": "3f1f10cc-af14-4de1-bc4c-0439c3fd6e5b",
+     "type": "user"
+    }
+   ]
+  },
+  {
+   "id": "e9839a7a-d00f-43c3-a2a5-724e3dbe41c0",
+   "type": "chapter",
+   "attributes": {
+    "volume": "1",
+    "chapter": "13",
+    "title": "Solo Against the Wolves",
+    "translatedLanguage": "en",
+    "externalUrl": "https://www.webnovel.com/comic/15227640605485101/45196916719418548",
+    "isUnavailable": false,
+    "publishAt": "2023-09-05T17:14:10+00:00",
+    "readableAt": "2023-09-05T17:14:10+00:00",
+    "createdAt": "2023-09-05T17:14:09+00:00",
+    "updatedAt": "2023-09-05T17:14:10+00:00",
+    "version": 2,
+    "pages": 0
+   },
+   "relationships": [
+    {
+     "id": "0b52e04c-d2ff-49cc-8b49-fdb4443bf544",
+     "type": "scanlation_group",
+     "attributes": {
+      "name": "Webnovel",
+      "official": true
+     }
+    },
+    {
+     "id": "32d76d19-8a05-4db0-9fc2-e0b0648fe9d0",
+     "type": "manga"
+    },
+    {
+     "id": "3f1f10cc-af14-4de1-bc4c-0439c3fd6e5b",
+     "type": "user"
+    }
+   ]
+  }
+ ],
+ "limit": 3,
+ "offset": 0,
+ "total": 24
+}

@@ -51,7 +51,7 @@ Copy and rename the convention plugins from `xmuks/build-logic/convention/src/ma
 Versioning: `0.<n>.x` while M<n> is in progress (M0 → 0.0.x, M1 → 0.1.x, …), and `1.0.0` when
 everything is done and tested. The details are in RELEASE.md.
 
-### M0 — Scaffold & CI (implement first)
+### M0 — Scaffold & CI ✅ (v0.0.x)
 1. Gradle skeleton: `settings.gradle.kts` (includeBuild build-logic, typesafe accessors, `FAIL_ON_PROJECT_REPOS`), version catalog, wrapper, `gradle.properties` with `m3mangadex.versionName` and `versionCode`.
 2. `app` with applicationId `pt.aguiarvieira.m3mangadex` (debug builds add `.debug`), namespace equal to the applicationId, and release builds with R8 minify and resource shrinking.
 3. Signing as in `xmuks/app/build.gradle.kts`: read `keystore.properties`, fall back to the env vars `KEYSTORE_FILE`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`, and leave the release build unsigned if they are missing. Update `.gitignore` for `*.jks`, `keystore.properties`, `play-service-account.json`, `local.properties`, `build/` and `.idea`.
@@ -69,7 +69,19 @@ everything is done and tested. The details are in RELEASE.md.
 7. `CLAUDE.md` (toolchain and AGP 9 gotchas from slskd), `RELEASE.md` (secrets and Play setup), and `docs/MILESTONES.md`, a copy of this plan.
    - **Manual Play step:** create the app in the Play Console and upload the first AAB by hand. The API cannot create the listing.
 
-### M1 — API layer & anonymous browsing
+### M1 — API layer & anonymous browsing ✅ (v0.1.x)
+
+Done as planned, plus:
+- Search suggestions lead with the most-followed matches, then relevance. Relevance alone ranks by
+  the main title, so "solo" didn't surface Solo Leveling ("Na Honjaman Level-Up").
+- Search has an "only titles in my chapter languages" switch (on by default, matching the Browse
+  rows) and tag include/exclude chips.
+- Tags on a manga open search filtered by that tag.
+- Chapters hosted on publishers' sites open in a Custom Tab. "Start reading" falls back to them when
+  nothing is hosted on MangaDex.
+- The collapsed search bar can't take focus, so a keyboard-attached tablet doesn't pop it open at launch.
+
+Original plan:
 - `core:network`:
   - `MangaDexApi` built on OkHttp + serialization.
   - DTOs for manga, chapter, cover, author, group and tag, with relationship resolution.

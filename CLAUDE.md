@@ -40,7 +40,20 @@ Releases are cut by pushing a `v<versionName>` tag. See `RELEASE.md`.
 
 ## Layout
 
-- `app`: Activity and navigation shell (`navigation/M3MangaDexApp.kt`). It uses `NavigationSuiteScaffold`,
+- `core:model` (JVM): domain types (`Manga`, `Chapter`, `MangaFilter`, `UserPreferences`), `Localized` title
+  picking, `Languages` (MangaDex codes ↔ locales), `Descriptions` (Markdown → plain text), `Covers`.
+- `core:network`: `MangaDexApi` (OkHttp + kotlinx-serialization, DTOs tolerant of MangaDex quirks like `[]`
+  for empty maps). Two clients: `@ApiClient` (rate-limited, the only one that will ever carry auth) and
+  `@ImageClient`. The app provides `UserAgent`. Tests use MockWebServer with trimmed real responses in
+  `src/test/resources/fixtures`.
+- `core:datastore`: `PreferencesDataSource` (chapter languages, content ratings, data saver).
+- `core:data`: `MangaRepository` (Browse sections, paged search, suggestions, details, full chapter feed, tags).
+- `feature:{browse,search,manga,settings}`: one `Route` (Hilt VM; assisted factory when it takes nav args) plus a
+  stateless `Screen` each, with a Roborazzi screenshot of the `Screen`.
+- Navigation keys live in `app/.../navigation/M3MangaDexApp.kt`. `MangaKey` is the detail pane, and the
+  others are list panes.
+
+- `app`: Activity, Coil `ImageLoader` (on the image client) and navigation shell (`navigation/M3MangaDexApp.kt`). It uses `NavigationSuiteScaffold`,
   with one Navigation 3 back stack per tab and the list-detail scene strategy.
 - `core:designsystem`: `M3MangaDexTheme` (`MaterialExpressiveTheme` + `MotionScheme.expressive()`, dynamic
   color, materialkolor fallback from seed `#FF6740`), Google Sans Flex typography and `ThemeCatalog`.

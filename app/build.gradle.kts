@@ -81,6 +81,12 @@ android {
 
 dependencies {
     implementation(projects.core.designsystem)
+    implementation(projects.core.network)
+    implementation(projects.core.data)
+    implementation(projects.feature.browse)
+    implementation(projects.feature.search)
+    implementation(projects.feature.manga)
+    implementation(projects.feature.settings)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
@@ -94,4 +100,6 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation3)
     implementation(libs.androidx.compose.material3.navigation.suite)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.coil)
+    implementation(libs.coil.network.okhttp)
 }

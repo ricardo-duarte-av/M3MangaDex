@@ -1,0 +1,470 @@
+{
+ "result": "ok",
+ "response": "collection",
+ "data": [
+  {
+   "id": "32d76d19-8a05-4db0-9fc2-e0b0648fe9d0",
+   "type": "manga",
+   "attributes": {
+    "title": {
+     "ko-ro": "Na Honjaman Level-Up"
+    },
+    "altTitles": [
+     {
+      "ko": "나 혼자만 레벨업"
+     },
+     {
+      "en": "Solo Leveling"
+     },
+     {
+      "ko-ro": "Na Honjaman Lebel-eob"
+     },
+     {
+      "en": "I level up alone"
+     },
+     {
+      "ja-ro": "Ore Dake Level Up na Ken"
+     },
+     {
+      "ru": "Поднятие уровня в одиночку"
+     },
+     {
+      "ja": "俺だけレベルアップな件"
+     },
+     {
+      "zh": "我独自升级"
+     },
+     {
+      "en": "I am the only the one who levels up"
+     },
+     {
+      "zh-hk": "我獨自升級"
+     },
+     {
+      "la": "Solo Adtritio"
+     },
+     {
+      "tr": "Yalnız Seviye Atlama"
+     },
+     {
+      "tr": "Sadece Ben Seviye Atlayabiliyorum"
+     },
+     {
+      "en": "I Alone Level-Up"
+     },
+     {
+      "pt-br": "Jogador solo"
+     },
+     {
+      "pt-br": "Upando sozinho"
+     },
+     {
+      "ro": "Singur îmi ridic nivelul"
+     },
+     {
+      "uk": "Тільки я візьму новий рівень"
+     },
+     {
+      "fa": "سولو لولینگ"
+     },
+     {
+      "fa": "تکرو"
+     },
+     {
+      "hi": "केवल मैं स्तर बढ़ाता हूं"
+     },
+     {
+      "ne": "सोलो लेभलिङ"
+     },
+     {
+      "id": "Aku Level Up Sendiri"
+     },
+     {
+      "id": "Grinding Sendiri"
+     },
+     {
+      "tr": "Ben yanlız gelişirim"
+     },
+     {
+      "tr": "Tek başına seviye atlama"
+     },
+     {
+      "ka": "სოლო ლეველინგი"
+     },
+     {
+      "ar": "سولو ليفيلنغ"
+     },
+     {
+      "ar": "الإرتقاء بالمستوى منفردًا"
+     },
+     {
+      "ja": "俺だけレベルアップな件〜外伝〜"
+     },
+     {
+      "bn": "সোলো লেভেলিং"
+     },
+     {
+      "he": "שחקן בודד"
+     },
+     {
+      "hi": "सोलो लेवलिंग"
+     },
+     {
+      "hu": "Egyéni szintlépés"
+     },
+     {
+      "ta": "சோலோ லெவெலிங்"
+     },
+     {
+      "en": "Only I Level up"
+     },
+     {
+      "vi": "Tôi Thăng Cấp Một Mình"
+     }
+    ],
+    "description": {
+     "en": "10 years ago, after “the Gate” that connected the real world with the monster world opened, some of the ordinary, everyday people received the power to hunt monsters within the Gate. They are known as “Hunters”. However, not all Hunters are powerful. My name is Sung Jin-Woo, an E-rank Hunter. I’m someone who has to risk his life in the lowliest of dungeons, the “World’s Weakest”. Having no skills whatsoever to display, I barely earned the required money by fighting in low-leveled dungeons… at least until I found a hidden dungeon with the hardest difficulty within the D-rank dungeons! In the end, as I was accepting death, I suddenly received a strange power, a quest log that only I could see, a secret to leveling up that only I know about! If I trained in accordance with my quests and hunted monsters, my level would rise. Changing from the weakest Hunter to the strongest S-rank Hunter!\n\n---\n**Links:**\n\n- Official English Translation [<Pocket Comics>](https://www.pocketcomics.com/comic/320) | [<WebNovel>](https://www.webnovel.com/comic/only-i-level-up-(solo-leveling)_15227640605485101) | [<Tapas>](https://tapas.io/series/solo-leveling-comic/info)\n- Alternate Official Raw - [Kakao Webtoon](https://webtoon.kakao.com/content/나-혼자만-레벨업/2320)"
+    },
+    "isLocked": true,
+    "links": {
+     "al": "105398",
+     "ap": "solo-leveling",
+     "kt": "54114",
+     "mu": "6z1uqw7",
+     "mal": "121496",
+     "raw": "https://page.kakao.com/content/50866481"
+    },
+    "officialLinks": null,
+    "originalLanguage": "ko",
+    "lastVolume": "3",
+    "lastChapter": "200",
+    "publicationDemographic": null,
+    "status": "completed",
+    "year": 2018,
+    "contentRating": "safe",
+    "tags": [
+     {
+      "id": "0a39b5a1-b235-4886-a747-1d05d216532d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Award Winning"
+       },
+       "description": {},
+       "group": "format",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "36fd93ea-e8b8-445e-b836-358f02b3d33d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Monsters"
+       },
+       "description": {},
+       "group": "theme",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "391b0423-d847-456f-aff0-8b0cfc03066b",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Action"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     }
+    ],
+    "state": "published",
+    "chapterNumbersResetOnNewVolume": false,
+    "createdAt": "2019-08-25T10:51:55+00:00",
+    "updatedAt": "2025-12-26T14:07:52+00:00",
+    "version": 112,
+    "availableTranslatedLanguages": [
+     "ka",
+     "ru",
+     "it",
+     "vi",
+     "en",
+     "hu",
+     "lt",
+     "tr",
+     "es-la",
+     "ms",
+     "id",
+     "pt-br",
+     "hi",
+     "ro",
+     "he",
+     "fr",
+     "fa",
+     "ar",
+     "es",
+     "de",
+     "pl",
+     "nl",
+     "kk",
+     "cs",
+     "sv",
+     "ta",
+     "te",
+     "sr",
+     "tl",
+     "el",
+     "bn",
+     "my"
+    ],
+    "latestUploadedChapter": "82625848-f46c-4a7d-b07e-f276dc575492"
+   },
+   "relationships": [
+    {
+     "id": "5671fb47-ebdd-450f-9d7d-347353a926ae",
+     "type": "author",
+     "attributes": {
+      "name": "h-goon (현군)"
+     }
+    },
+    {
+     "id": "820b13ef-dc7d-42b1-999a-65393b8b4040",
+     "type": "author",
+     "attributes": {
+      "name": "Chugong (추공)"
+     }
+    },
+    {
+     "id": "f7a59e4f-2b0c-45dc-b30e-949c8c3f0ad2",
+     "type": "author",
+     "attributes": {
+      "name": "Gi So-Ryeong (기소령)"
+     }
+    },
+    {
+     "id": "50200613-ef62-4ec8-b879-6d9ecd022e66",
+     "type": "artist",
+     "attributes": {
+      "name": "REDICE Studio (레드아이스 스튜디오)"
+     }
+    },
+    {
+     "id": "86f43f7f-7f32-4ecb-8dd9-7cd2ae16932b",
+     "type": "artist",
+     "attributes": {
+      "name": "Jang Sung-Rak (장성락)"
+     }
+    },
+    {
+     "id": "e6583e52-1125-4c50-8db4-e8d6cf3fb144",
+     "type": "cover_art",
+     "attributes": {
+      "fileName": "e90bdc47-c8b9-4df7-b2c0-17641b645ee1.jpg",
+      "description": "",
+      "volume": "4",
+      "locale": "ko",
+      "createdAt": "2023-04-20T17:37:25+00:00",
+      "updatedAt": "2023-04-20T17:37:25+00:00",
+      "version": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "aa6c76f7-5f5f-46b6-a800-911145f81b9b",
+   "type": "manga",
+   "attributes": {
+    "title": {
+     "ja-ro": "Sono Bisque Doll wa Koi o Suru"
+    },
+    "altTitles": [
+     {
+      "ja": "その着せ替え人形は恋をする"
+     },
+     {
+      "ja-ro": "Sono Bisque Doll ha Koi wo Suru"
+     },
+     {
+      "en": "My Dress-Up Darling"
+     },
+     {
+      "en": "The Bisque Doll Falls In Love"
+     },
+     {
+      "en": "The Bisque Doll Is Falling In Love"
+     },
+     {
+      "ar": "ماي دريس-أب دارلينغ"
+     },
+     {
+      "fr": "Sexy Cosplay Doll"
+     },
+     {
+      "de": "More than a Doll"
+     },
+     {
+      "hi": "എന്റെ വസ്ത്രധാരണം പ്രിയേ"
+     },
+     {
+      "ne": "ड्रेस-अप पुतली प्रेममा पर्छ"
+     },
+     {
+      "pl": "Projekt Cosplay"
+     },
+     {
+      "pt-br": "Minha Adorável Cosplayer"
+     },
+     {
+      "ru": "Эта фарфоровая кукла влюбилась"
+     },
+     {
+      "es-la": "Esa muñeca de porcelana está enamorada"
+     },
+     {
+      "th": "หนุ่มเย็บผ้ากับสาวนักคอสเพลย์"
+     },
+     {
+      "uk": "Ця порцелянова лялечка закохалася"
+     },
+     {
+      "vi": "Cô Nàng Nổi Loạn X Chàng Thợ May"
+     },
+     {
+      "vi": "Nàng Búp Bê Thử Đồ Của Tôi Biết Yêu"
+     },
+     {
+      "ko": "그 장난감 인형은 사랑을 한다"
+     },
+     {
+      "zh": "更衣人偶墜入愛河"
+     },
+     {
+      "zh-hk": "戀上換裝娃娃"
+     }
+    ],
+    "description": [],
+    "isLocked": true,
+    "links": {
+     "al": "101583",
+     "ap": "my-dress-up-darling",
+     "bw": "series/181406/list",
+     "kt": "41006",
+     "mu": "6er8uim",
+     "amz": "https://www.amazon.co.jp/dp/B07L1BZQPL",
+     "cdj": "https://www.cdjapan.co.jp/product/NEOBK-2283733",
+     "ebj": "https://ebookjapan.yahoo.co.jp/books/511186",
+     "mal": "112268",
+     "raw": "https://magazine.jp.square-enix.com/yg/introduction/sonobisque",
+     "engtl": "https://global.manga-up.com/manga/113"
+    },
+    "officialLinks": null,
+    "originalLanguage": "ja",
+    "lastVolume": "15",
+    "lastChapter": "115",
+    "publicationDemographic": "seinen",
+    "status": "completed",
+    "year": 2018,
+    "contentRating": "suggestive",
+    "tags": [
+     {
+      "id": "423e2eae-a7a2-4a8b-ac03-a8351462d71d",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Romance"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "4d32cc48-9f00-4cca-9b5a-a839f0764984",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Comedy"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     },
+     {
+      "id": "b9af3a63-f058-46de-a9a0-e0c13906197a",
+      "type": "tag",
+      "attributes": {
+       "name": {
+        "en": "Drama"
+       },
+       "description": {},
+       "group": "genre",
+       "version": 1
+      },
+      "relationships": []
+     }
+    ],
+    "state": "published",
+    "chapterNumbersResetOnNewVolume": false,
+    "createdAt": "2019-03-29T17:37:07+00:00",
+    "updatedAt": "2025-12-25T12:35:05+00:00",
+    "version": 299,
+    "availableTranslatedLanguages": [
+     "fr",
+     "en",
+     "vi",
+     "pt-br",
+     "es-la",
+     "id",
+     "es",
+     "ru",
+     "fa",
+     "tr",
+     "hu",
+     "it",
+     null
+    ],
+    "latestUploadedChapter": "21900705-c513-4a9c-99a7-06479a917d91"
+   },
+   "relationships": [
+    {
+     "id": "4bba09c3-40c4-4cd6-9089-c47f73d5e1eb",
+     "type": "author",
+     "attributes": {
+      "name": "Fukuda Shinichi"
+     }
+    },
+    {
+     "id": "4bba09c3-40c4-4cd6-9089-c47f73d5e1eb",
+     "type": "artist",
+     "attributes": {
+      "name": "Fukuda Shinichi"
+     }
+    },
+    {
+     "id": "6ce2e9a4-deb7-4646-b479-cd658985a3e8",
+     "type": "cover_art",
+     "attributes": {
+      "description": "",
+      "volume": "15",
+      "fileName": "d3e909b9-c667-48a5-beec-ac96f23fa228.jpg",
+      "locale": "ja",
+      "createdAt": "2025-07-22T06:13:03+00:00",
+      "updatedAt": "2025-07-22T06:13:03+00:00",
+      "version": 1
+     }
+    }
+   ]
+  }
+ ],
+ "limit": 2,
+ "offset": 0,
+ "total": 85826
+}

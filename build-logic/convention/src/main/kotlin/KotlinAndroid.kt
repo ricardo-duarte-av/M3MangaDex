@@ -22,6 +22,8 @@ internal fun Project.configureKotlinAndroid(commonExtension: CommonExtension) {
 /** Robolectric reads file descriptors (fonts, assets, SQLite) through JDK internals that JDK 17+ hides. */
 internal fun Project.configureRobolectricJvm() {
     tasks.withType<Test>().configureEach {
+        // Modules without tests yet (the screenshot plugin adds test dependencies to all of them).
+        failOnNoDiscoveredTests.set(false)
         jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
         jvmArgs("--add-opens=java.base/java.io=ALL-UNNAMED")
     }

@@ -38,6 +38,12 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.serialization.Serializable
 import pt.aguiarvieira.m3mangadex.BuildConfig
 import pt.aguiarvieira.m3mangadex.R
+import pt.aguiarvieira.m3mangadex.core.data.BrowseSection
+import pt.aguiarvieira.m3mangadex.feature.browse.BrowseRoute
+import pt.aguiarvieira.m3mangadex.feature.manga.MangaRoute
+import pt.aguiarvieira.m3mangadex.feature.search.SearchArgs
+import pt.aguiarvieira.m3mangadex.feature.search.SearchRoute
+import pt.aguiarvieira.m3mangadex.feature.settings.SettingsRoute
 
 @Serializable data object BrowseKey : NavKey
 
@@ -46,6 +52,17 @@ import pt.aguiarvieira.m3mangadex.R
 @Serializable data object UpdatesKey : NavKey
 
 @Serializable data object SettingsKey : NavKey
+
+/** Full search: a typed query, a Browse row's "See all" ([section]), or a tag from a manga. */
+@Serializable data class SearchKey(
+    val query: String = "",
+    val section: String? = null,
+    val tagId: String? = null,
+) : NavKey
+
+@Serializable data class MangaKey(
+    val mangaId: String,
+) : NavKey
 
 /** The top-level destinations, one per navigation-suite item, each with its own back stack. */
 enum class TopLevel(
@@ -101,7 +118,24 @@ fun M3MangaDexApp(modifier: Modifier = Modifier) {
             entryProvider =
                 entryProvider {
                     entry<BrowseKey>(metadata = listPane()) {
-                        PlaceholderScreen(R.string.tab_browse, stringResource(R.string.placeholder_browse))
+                        BrowseRoute(
+                            onOpenManga = backStack::openManga,
+                            onOpenSearch = { query, section -> backStack.add(SearchKey(query, section?.name)) },
+                        )
+                    }
+                    entry<SearchKey>(metadata = listPane()) { key ->
+                        SearchRoute(
+                            args = SearchArgs(key.query, key.section?.let(BrowseSection::valueOf), key.tagId),
+                            onBack = { backStack.removeLastOrNull() },
+                            onOpenManga = backStack::openManga,
+                        )
+                    }
+                    entry<MangaKey>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
+                        MangaRoute(
+                            mangaId = key.mangaId,
+                            onBack = { backStack.removeLastOrNull() },
+                            onOpenTag = { backStack.add(SearchKey(tagId = it)) },
+                        )
                     }
                     entry<LibraryKey>(metadata = listPane()) {
                         PlaceholderScreen(R.string.tab_library, stringResource(R.string.placeholder_library))
@@ -110,14 +144,23 @@ fun M3MangaDexApp(modifier: Modifier = Modifier) {
                         PlaceholderScreen(R.string.tab_updates, stringResource(R.string.placeholder_updates))
                     }
                     entry<SettingsKey> {
-                        PlaceholderScreen(
-                            R.string.tab_settings,
-                            stringResource(R.string.settings_version, BuildConfig.VERSION_NAME) + "\n\n" +
-                                stringResource(R.string.settings_credit),
-                        )
+                        SettingsRoute(versionName = BuildConfig.VERSION_NAME)
                     }
                 },
         )
+    }
+}
+
+/**
+ * Opens a manga. If one is already open on top (beside the list on a large screen) it is replaced
+ * rather than stacked, so back returns to the list instead of walking through every title tapped.
+ */
+private fun MutableList<NavKey>.openManga(mangaId: String) {
+    val key = MangaKey(mangaId)
+    when (lastOrNull()) {
+        key -> Unit
+        is MangaKey -> set(lastIndex, key)
+        else -> add(key)
     }
 }
 

@@ -1,0 +1,18 @@
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_languages">Chapter languages</string>
+    <string name="settings_languages_hint">Chapters are listed in these languages, and titles use them when they can. At least one stays selected.</string>
+    <string name="settings_content">Content rating</string>
+    <string name="settings_content_hint">What browsing and search show. At least one stays selected.</string>
+    <string name="settings_rating_safe">Safe</string>
+    <string name="settings_rating_suggestive">Suggestive</string>
+    <string name="settings_rating_erotica">Erotica</string>
+    <string name="settings_reading">Reading</string>
+    <string name="settings_data_saver">Data saver</string>
+    <string name="settings_data_saver_hint">Load compressed pages. Uses less data, looks a little softer.</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_credit">Content is provided by MangaDex and its scanlation groups. M3MangaDex is not affiliated with MangaDex.</string>
+    <string name="settings_mangadex">Open MangaDex</string>
+    <string name="settings_source">Source code</string>
+</resources>

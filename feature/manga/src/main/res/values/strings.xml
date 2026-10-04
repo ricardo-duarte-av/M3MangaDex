@@ -1,0 +1,21 @@
+<resources>
+    <string name="manga_read">Start reading</string>
+    <string name="manga_more">More</string>
+    <string name="manga_less">Less</string>
+    <string name="manga_chapters">Chapters</string>
+    <string name="manga_chapters_count">%1$d chapters</string>
+    <string name="manga_no_chapters">No chapters in your languages (%1$s). Change them in Settings.</string>
+    <string name="manga_chapters_failed">Couldn’t load the chapters.</string>
+    <string name="manga_volume">Volume %1$s</string>
+    <string name="manga_no_volume">No volume</string>
+    <string name="manga_chapter">Ch. %1$s</string>
+    <string name="manga_oneshot">Oneshot</string>
+    <string name="manga_no_group">No group</string>
+    <string name="manga_external">Hosted on the publisher’s site</string>
+    <string name="manga_reader_coming">The reader arrives in version 0.2.</string>
+    <string name="manga_follows">%1$s follows</string>
+    <string name="manga_status_ongoing">Ongoing</string>
+    <string name="manga_status_completed">Completed</string>
+    <string name="manga_status_hiatus">Hiatus</string>
+    <string name="manga_status_cancelled">Cancelled</string>
+</resources>
