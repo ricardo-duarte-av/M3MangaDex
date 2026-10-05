@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,6 +48,7 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.theme.CoverHolder
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.CoverTheme
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.LocalCoverHolder
 import pt.aguiarvieira.m3mangadex.feature.browse.BrowseRoute
+import pt.aguiarvieira.m3mangadex.feature.downloads.DownloadsRoute
 import pt.aguiarvieira.m3mangadex.feature.library.LibraryRoute
 import pt.aguiarvieira.m3mangadex.feature.login.LoginRoute
 import pt.aguiarvieira.m3mangadex.feature.manga.MangaRoute
@@ -77,6 +79,14 @@ import pt.aguiarvieira.m3mangadex.feature.updates.UpdatesRoute
 
 @Serializable data object LoginKey : NavKey
 
+@Serializable data object DownloadsKey : NavKey
+
+/** Something to open on arrival (a notification tap): a manga, and maybe one of its chapters. */
+data class OpenRequest(
+    val mangaId: String,
+    val chapterId: String?,
+)
+
 /** Full screen, over everything: the navigation bar hides while it's on top. */
 @Serializable data class ReaderKey(
     val mangaId: String,
@@ -102,11 +112,26 @@ enum class TopLevel(
  */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun M3MangaDexApp(modifier: Modifier = Modifier) {
+fun M3MangaDexApp(
+    modifier: Modifier = Modifier,
+    open: OpenRequest? = null,
+    onOpenHandle: () -> Unit = {},
+) {
     var current by rememberSaveable { mutableStateOf(TopLevel.Browse) }
     val stacks =
         TopLevel.entries.associateWith { tab -> rememberNavBackStack(tab.key) }
     val listDetail = rememberListDetailSceneStrategy<NavKey>()
+    val opened by rememberUpdatedState(onOpenHandle)
+    LaunchedEffect(open) {
+        if (open == null) return@LaunchedEffect
+        // From a notification: the manga in Browse, and the chapter over it when there's one.
+        current = TopLevel.Browse
+        val stack = stacks.getValue(TopLevel.Browse)
+        stack.retainRoot()
+        stack.add(MangaKey(open.mangaId))
+        open.chapterId?.let { stack.add(ReaderKey(open.mangaId, it)) }
+        opened()
+    }
     val suiteState = rememberNavigationSuiteScaffoldState()
     val reading = stacks.getValue(current).lastOrNull() is ReaderKey
     LaunchedEffect(reading) { if (reading) suiteState.hide() else suiteState.show() }
@@ -178,7 +203,11 @@ fun M3MangaDexApp(modifier: Modifier = Modifier) {
                                 )
                             }
                             entry<LibraryKey>(metadata = listPane()) {
-                                LibraryRoute(onOpenManga = backStack::openManga, onLogin = { backStack.add(LoginKey) })
+                                LibraryRoute(
+                                    onOpenManga = backStack::openManga,
+                                    onLogin = { backStack.add(LoginKey) },
+                                    onOpenDownloads = { backStack.add(DownloadsKey) },
+                                )
                             }
                             entry<UpdatesKey> {
                                 UpdatesRoute(
@@ -194,7 +223,15 @@ fun M3MangaDexApp(modifier: Modifier = Modifier) {
                             entry<SettingsKey> {
                                 SettingsRoute(
                                     versionName = BuildConfig.VERSION_NAME,
-                                    onLogin = { backStack.add(LoginKey) }
+                                    onLogin = { backStack.add(LoginKey) },
+                                    onOpenDownloads = { backStack.add(DownloadsKey) },
+                                    debugTools = BuildConfig.DEBUG,
+                                )
+                            }
+                            entry<DownloadsKey> {
+                                DownloadsRoute(
+                                    onBack = { backStack.removeLastOrNull() },
+                                    onRead = { mangaId, chapterId -> backStack.add(ReaderKey(mangaId, chapterId)) },
                                 )
                             }
                             entry<LoginKey> {

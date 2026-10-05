@@ -7,6 +7,14 @@
     <string name="settings_logout">Log out</string>
     <string name="settings_sync_hint">Library, follows and read chapters stay in sync with MangaDex.</string>
     <string name="settings_session_expired">Session ended. Tap to log back in.</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_new_chapters">New chapters</string>
+    <string name="settings_new_chapters_hint">Get notified when manga you follow get new chapters in your languages. Checked every couple of hours.</string>
+    <string name="settings_new_chapters_login">Log in to get notified about the manga you follow.</string>
+    <string name="settings_check_now">Check for new chapters now (last 48 h, debug)</string>
+    <string name="settings_storage">Offline reading</string>
+    <string name="settings_downloads">Downloads</string>
+    <string name="settings_downloads_hint">Chapters saved on this device.</string>
     <string name="settings_languages">Chapter languages</string>
     <string name="settings_languages_hint">Chapters are listed in these languages, and titles use them when they can. At least one stays selected.</string>
     <string name="settings_content">Content rating</string>

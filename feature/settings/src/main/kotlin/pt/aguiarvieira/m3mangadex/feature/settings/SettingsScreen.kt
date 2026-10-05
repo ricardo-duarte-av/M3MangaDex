@@ -1,5 +1,9 @@
 package pt.aguiarvieira.m3mangadex.feature.settings
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -25,10 +29,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pt.aguiarvieira.m3mangadex.core.auth.Session
@@ -42,6 +48,8 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.R as DsR
 fun SettingsRoute(
     versionName: String,
     onLogin: () -> Unit,
+    onOpenDownloads: () -> Unit,
+    debugTools: Boolean,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -52,6 +60,9 @@ fun SettingsRoute(
         session = session,
         onLogin = onLogin,
         onLogout = viewModel::logout,
+        onOpenDownloads = onOpenDownloads,
+        onNotificationsChange = viewModel::setNewChapterNotifications,
+        onCheckNow = viewModel::checkNewChaptersNow.takeIf { debugTools },
         versionName = versionName,
         onToggleLanguage = viewModel::toggleLanguage,
         onToggleRating = viewModel::toggleRating,
@@ -71,6 +82,9 @@ fun SettingsScreen(
     session: Session,
     onLogin: () -> Unit,
     onLogout: () -> Unit,
+    onOpenDownloads: () -> Unit,
+    onNotificationsChange: (Boolean) -> Unit,
+    onCheckNow: (() -> Unit)?,
     versionName: String,
     onToggleLanguage: (String) -> Unit,
     onToggleRating: (ContentRating) -> Unit,
@@ -102,6 +116,24 @@ fun SettingsScreen(
         ) {
             item { Heading(R.string.settings_account) }
             item { AccountItem(session, onLogin, onLogout) }
+            item { Heading(R.string.settings_notifications) }
+            item {
+                NotificationsItem(
+                    preferences.newChapterNotifications,
+                    session is Session.LoggedIn,
+                    onNotificationsChange
+                )
+            }
+            onCheckNow?.let { check ->
+                item { ListItem(onClick = check) { Text(stringResource(R.string.settings_check_now)) } }
+            }
+            item { Heading(R.string.settings_storage) }
+            item {
+                ListItem(
+                    onClick = onOpenDownloads,
+                    supportingContent = { Text(stringResource(R.string.settings_downloads_hint)) },
+                ) { Text(stringResource(R.string.settings_downloads)) }
+            }
             item { Heading(R.string.settings_languages) }
             item { Hint(R.string.settings_languages_hint) }
             item {
@@ -187,6 +219,50 @@ fun SettingsScreen(
             }
         }
     }
+}
+
+/** The new-chapters switch; turning it on asks for the notification permission first (Android 13+). */
+@Composable
+private fun NotificationsItem(
+    enabled: Boolean,
+    loggedIn: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
+    val context = LocalContext.current
+    val permission =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted -> if (granted) onChange(true) }
+    val turnOn = {
+        val granted =
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+        if (granted) onChange(true) else permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+    ListItem(
+        onClick = {
+            when {
+                !loggedIn -> {}
+
+                enabled -> {
+                    onChange(false)
+                }
+
+                else -> {
+                    turnOn()
+                }
+            }
+        },
+        enabled = loggedIn,
+        supportingContent = {
+            Text(
+                stringResource(
+                    if (loggedIn) R.string.settings_new_chapters_hint else R.string.settings_new_chapters_login
+                )
+            )
+        },
+        trailingContent = { Switch(checked = enabled && loggedIn, onCheckedChange = null, enabled = loggedIn) },
+    ) { Text(stringResource(R.string.settings_new_chapters)) }
 }
 
 @Composable

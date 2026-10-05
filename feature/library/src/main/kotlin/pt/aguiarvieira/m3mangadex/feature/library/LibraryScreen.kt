@@ -15,6 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
@@ -24,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,11 +39,13 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.component.MangaCard
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.label
 import pt.aguiarvieira.m3mangadex.core.model.ReadingStatus
 import pt.aguiarvieira.m3mangadex.core.model.coverUrl
+import pt.aguiarvieira.m3mangadex.core.designsystem.R as DsR
 
 @Composable
 fun LibraryRoute(
     onOpenManga: (String) -> Unit,
     onLogin: () -> Unit,
+    onOpenDownloads: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
@@ -53,6 +58,7 @@ fun LibraryRoute(
         onRefresh = viewModel::refresh,
         onOpenManga = onOpenManga,
         onLogin = onLogin,
+        onOpenDownloads = onOpenDownloads,
         modifier = modifier,
     )
 }
@@ -66,11 +72,22 @@ fun LibraryScreen(
     onRefresh: () -> Unit,
     onOpenManga: (String) -> Unit,
     onLogin: () -> Unit,
+    onOpenDownloads: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Scaffold(modifier = modifier, topBar = {
-        MediumFlexibleTopAppBar(title = { Text(stringResource(R.string.library_title)) })
-    }) { padding ->
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            MediumFlexibleTopAppBar(
+                title = { Text(stringResource(R.string.library_title)) },
+                actions = {
+                    IconButton(onClick = onOpenDownloads) {
+                        Icon(painterResource(DsR.drawable.ic_download_done), stringResource(R.string.library_downloads))
+                    }
+                },
+            )
+        },
+    ) { padding ->
         val content = Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())
         when (state) {
             LibraryUiState.LoggedOut -> {

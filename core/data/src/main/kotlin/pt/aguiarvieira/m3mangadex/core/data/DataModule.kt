@@ -7,6 +7,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import pt.aguiarvieira.m3mangadex.core.data.download.DefaultDownloadRepository
+import pt.aguiarvieira.m3mangadex.core.data.download.DownloadRepository
+import pt.aguiarvieira.m3mangadex.core.database.DownloadDao
 import pt.aguiarvieira.m3mangadex.core.database.M3MangaDexDatabase
 import pt.aguiarvieira.m3mangadex.core.database.ReadingDao
 import javax.inject.Singleton
@@ -23,6 +26,9 @@ internal interface DataModule {
     @Binds
     fun libraryRepository(impl: DefaultLibraryRepository): LibraryRepository
 
+    @Binds
+    fun downloadRepository(impl: DefaultDownloadRepository): DownloadRepository
+
     companion object {
         @Provides
         @Singleton
@@ -32,5 +38,8 @@ internal interface DataModule {
 
         @Provides
         fun readingDao(database: M3MangaDexDatabase): ReadingDao = database.readingDao()
+
+        @Provides
+        fun downloadDao(database: M3MangaDexDatabase): DownloadDao = database.downloadDao()
     }
 }

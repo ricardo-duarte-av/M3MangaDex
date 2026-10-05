@@ -10,4 +10,8 @@
     <string name="ds_status_re_reading">Re-reading</string>
     <string name="ds_status_completed">Completed</string>
     <string name="ds_status_dropped">Dropped</string>
+    <string name="ds_download">Download</string>
+    <string name="ds_download_retry">Download failed. Retry</string>
+    <string name="ds_download_delete">Delete download</string>
+    <string name="ds_download_cancel">Cancel download</string>
 </resources>

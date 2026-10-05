@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.Flow
@@ -42,8 +43,24 @@ class PreferencesDataSource
                     pageFit = PageFit.entries.firstOrNull { it.name == prefs[PAGE_FIT] } ?: PageFit.Auto,
                     cropBorders = prefs[CROP_BORDERS] ?: true,
                     coverTheming = prefs[COVER_THEMING] ?: true,
+                    newChapterNotifications = prefs[NEW_CHAPTER_NOTIFICATIONS] ?: false,
                 )
             }
+
+        /** Enables or disables new-chapter checks; enabling starts counting from now (no backlog flood). */
+        suspend fun setNewChapterNotifications(enabled: Boolean) {
+            dataStore.edit {
+                it[NEW_CHAPTER_NOTIFICATIONS] = enabled
+                if (enabled) it[LAST_CHAPTER_CHECK] = System.currentTimeMillis()
+            }
+        }
+
+        /** Epoch millis up to which new chapters have been notified about (0: never checked). */
+        val lastChapterCheck: Flow<Long> = dataStore.data.map { it[LAST_CHAPTER_CHECK] ?: 0L }
+
+        suspend fun setLastChapterCheck(millis: Long) {
+            dataStore.edit { it[LAST_CHAPTER_CHECK] = millis }
+        }
 
         suspend fun setPageFit(fit: PageFit) {
             dataStore.edit { it[PAGE_FIT] = fit.name }
@@ -86,5 +103,7 @@ class PreferencesDataSource
             val PAGE_FIT = stringPreferencesKey("page_fit")
             val CROP_BORDERS = booleanPreferencesKey("crop_borders")
             val COVER_THEMING = booleanPreferencesKey("cover_theming")
+            val NEW_CHAPTER_NOTIFICATIONS = booleanPreferencesKey("new_chapter_notifications")
+            val LAST_CHAPTER_CHECK = longPreferencesKey("last_chapter_check")
         }
     }

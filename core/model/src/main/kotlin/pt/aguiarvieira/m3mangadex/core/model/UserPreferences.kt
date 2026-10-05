@@ -16,6 +16,8 @@ data class UserPreferences(
     val cropBorders: Boolean = true,
     /** Tint screens with colours picked from the manga's cover. */
     val coverTheming: Boolean = true,
+    /** Notify about new chapters of followed manga (needs an account). */
+    val newChapterNotifications: Boolean = false,
 )
 
 /** How a page (or spread) is scaled in the paged reader modes. */

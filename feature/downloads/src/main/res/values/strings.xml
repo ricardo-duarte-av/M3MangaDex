@@ -1,0 +1,11 @@
+<resources>
+    <string name="downloads_title">Downloads</string>
+    <string name="downloads_empty">Nothing downloaded yet. Use the download buttons on a manga’s chapters to read them offline.</string>
+    <string name="downloads_total">%1$s on this device</string>
+    <string name="downloads_chapter">Ch. %1$s</string>
+    <string name="downloads_oneshot">Oneshot</string>
+    <string name="downloads_queued">Waiting</string>
+    <string name="downloads_progress">Downloading · %1$d of %2$d pages</string>
+    <string name="downloads_failed">Failed. Tap the icon to retry</string>
+    <string name="downloads_delete_manga">Delete all of %1$s</string>
+</resources>

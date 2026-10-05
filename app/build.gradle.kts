@@ -85,6 +85,7 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.feature.browse)
     implementation(projects.feature.library)
+    implementation(projects.feature.downloads)
     implementation(projects.feature.login)
     implementation(projects.feature.updates)
     implementation(projects.feature.search)
@@ -106,4 +107,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.androidx.work.runtime.ktx)
 }

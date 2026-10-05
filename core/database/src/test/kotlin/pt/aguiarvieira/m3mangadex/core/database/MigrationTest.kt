@@ -35,7 +35,7 @@ class MigrationTest {
     }
 
     @Test
-    fun `version 1 data survives the upgrade to 2`() =
+    fun `version 1 data survives the upgrade to the current schema`() =
         runTest {
             val name = "migration-test.db"
             context.deleteDatabase(name)
@@ -46,6 +46,10 @@ class MigrationTest {
             assertEquals("Webtoon", dao.readerMode("m").first())
             assertNull(dao.settingsNow("m")?.extraLanguages)
             assertEquals(4, dao.progressOf("c1")?.page)
+            // v3's downloads table exists and works.
+            val downloads = db.downloadDao()
+            downloads.insert(listOf(DownloadEntity("c9", "m", "Title", null, "1", null, "en", "Queued", 0, 0, 0, 1)))
+            assertEquals("c9", downloads.next()?.chapterId)
             db.close()
         }
 }

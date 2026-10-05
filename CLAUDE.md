@@ -84,6 +84,15 @@ Releases are cut by pushing a `v<versionName>` tag. See `RELEASE.md`.
   15 minutes. Don't store the password. Keep it behind `AuthProvider` so PKCE can replace it later.
 - Credit scanlation groups. Default content ratings are safe and suggestive.
 
+## Background work
+
+- Workers (`core:data`: `download/DownloadWorker`, `notify/NewChaptersWorker`) get dependencies through Hilt
+  `@EntryPoint`s, as in xmuks, so no custom WorkerFactory. Downloads are a `dataSync` foreground service; the
+  service type is declared in `core:data`'s manifest.
+- Notifications open the launcher activity with `AppNotifications.EXTRA_MANGA_ID` / `EXTRA_CHAPTER_ID`;
+  `MainActivity` turns those into an `OpenRequest` for navigation.
+- Run `spotlessApply` before scripted edits. It reflows code, and exact-match replacements then silently miss.
+
 ## Account
 
 - `core:auth`: `AuthRepository` is the session and the `AccessTokenProvider` for the API client. Mark user requests

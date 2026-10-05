@@ -1,8 +1,10 @@
 package pt.aguiarvieira.m3mangadex.feature.settings
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -10,6 +12,7 @@ import kotlinx.coroutines.launch
 import pt.aguiarvieira.m3mangadex.core.auth.AuthRepository
 import pt.aguiarvieira.m3mangadex.core.auth.Session
 import pt.aguiarvieira.m3mangadex.core.data.LibraryRepository
+import pt.aguiarvieira.m3mangadex.core.data.notify.NewChaptersWorker
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.UserPreferences
@@ -22,7 +25,19 @@ class SettingsViewModel
         private val preferences: PreferencesDataSource,
         private val auth: AuthRepository,
         private val library: LibraryRepository,
+        @param:ApplicationContext private val context: Context,
     ) : ViewModel() {
+        fun setNewChapterNotifications(enabled: Boolean) {
+            viewModelScope.launch { preferences.setNewChapterNotifications(enabled) }
+        }
+
+        /** Debug builds: run a check now, looking back two days, to see notifications without waiting. */
+        fun checkNewChaptersNow() =
+            NewChaptersWorker.checkNow(
+                context,
+                System.currentTimeMillis() - TEST_LOOKBACK_MILLIS
+            )
+
         val session: StateFlow<Session> = auth.session
 
         fun logout() {
@@ -68,5 +83,6 @@ class SettingsViewModel
 
         private companion object {
             const val STOP_TIMEOUT_MILLIS = 5_000L
+            const val TEST_LOOKBACK_MILLIS = 48 * 60 * 60 * 1000L
         }
     }

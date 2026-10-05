@@ -16,6 +16,8 @@ dependencies {
     api(projects.core.auth)
     implementation(projects.core.network)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.work.runtime.ktx)
 
     testImplementation(libs.androidx.paging.testing)
 }

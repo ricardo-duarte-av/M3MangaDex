@@ -13,6 +13,8 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.theme.M3MangaDexTheme
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
 import pt.aguiarvieira.m3mangadex.core.model.ChapterProgress
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
+import pt.aguiarvieira.m3mangadex.core.model.Download
+import pt.aguiarvieira.m3mangadex.core.model.DownloadState
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaStats
 import pt.aguiarvieira.m3mangadex.core.model.PublicationStatus
@@ -68,6 +70,15 @@ class MangaScreenshotTest {
                     onSetStatus = {},
                     onToggleFollow = {},
                     onToggleRead = {},
+                    downloads =
+                        mapOf(
+                            "c1" to Download("c1", "m1", "Solo Leveling", null, "1", null, "en", DownloadState.Done, 25, 25, 1, Instant.EPOCH),
+                            "c3" to
+                                Download("c3", "m1", "Solo Leveling", null, "12", null, "en", DownloadState.Downloading, 12, 30, 0, Instant.EPOCH),
+                        ),
+                    onDownload = {},
+                    onDeleteDownload = {},
+                    onRetryDownload = {},
                 )
             }
         }

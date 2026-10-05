@@ -9,6 +9,12 @@
     <string name="manga_sync_failed">Couldn’t save that to MangaDex.</string>
     <string name="manga_mark_read">Mark as read</string>
     <string name="manga_mark_unread">Mark as unread</string>
+    <string name="manga_download_menu">Download chapters</string>
+    <string name="manga_download_next">Download next %1$d unread</string>
+    <plurals name="manga_download_unread">
+        <item quantity="one">Download %1$d unread chapter</item>
+        <item quantity="other">Download all %1$d unread chapters</item>
+    </plurals>
     <string name="manga_more">More</string>
     <string name="manga_less">Less</string>
     <string name="manga_chapters">Chapters</string>

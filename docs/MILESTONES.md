@@ -203,7 +203,30 @@ Original plan:
   - Updates feed (`/user/follows/manga/feed`), ratings, and custom lists.
 - Anonymous mode keeps a local-only library in Room, which can be merged into follows after login.
 
-### M5 — Library, downloads & notifications
+### M5 — Library, downloads & notifications ✅ (v0.5.x)
+
+Done:
+- Downloads:
+  - Room v3 `downloads` table, with a tested 1→3 migration.
+  - `DownloadEngine` downloads one chapter at a time, page by page, through the image client, so
+    MangaDex@Home reports still go out. A failing page gets one fresh at-home server. It resumes
+    where it stopped, and deleting stops it mid-chapter.
+  - `DownloadWorker` runs it as a data-sync foreground service with a progress notification.
+  - Files live in app-private `files/downloads/{chapterId}/NNN.ext`.
+- The reader uses downloaded files when present, offline or not. Tested with Wi-Fi and data off.
+- Details: a download button per chapter (queued / progress-cancel / done-delete / failed-retry) and
+  "Download next 5 / all unread" in the top bar.
+- Downloads screen (from Library or Settings), grouped by manga with sizes; tap a saved chapter to read.
+- New-chapter notifications:
+  - `NewChaptersWorker` runs every 2 h while online and reads the follows feed since the last check.
+  - One notification per manga. Tapping it opens the chapter if there's one, else the manga.
+  - The setting asks for POST_NOTIFICATIONS on Android 13+.
+  - Debug builds have a "check now (48 h)" item.
+
+Not done: notifications for anonymous users. There's no account follows feed to watch, and polling
+every library title is too heavy for MangaDex's rate limit.
+
+Original plan:
 - `feature:library`: grid and list views, filtering by reading status, and unread badges.
 - `feature:downloads`:
   - WorkManager foreground downloads per chapter into app-specific storage, with queue, pause, retry and delete, and a data-saver option.

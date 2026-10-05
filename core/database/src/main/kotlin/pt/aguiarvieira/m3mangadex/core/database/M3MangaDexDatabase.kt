@@ -14,12 +14,14 @@ import kotlinx.coroutines.Dispatchers
  * destructive fallback.
  */
 @Database(
-    entities = [ChapterProgressEntity::class, MangaSettingsEntity::class],
-    version = 2,
+    entities = [ChapterProgressEntity::class, MangaSettingsEntity::class, DownloadEntity::class],
+    version = 3,
     exportSchema = false,
 )
 abstract class M3MangaDexDatabase : RoomDatabase() {
     abstract fun readingDao(): ReadingDao
+
+    abstract fun downloadDao(): DownloadDao
 
     companion object {
         /** [name] null builds an in-memory database (tests). */

@@ -70,15 +70,18 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
+import pt.aguiarvieira.m3mangadex.core.designsystem.component.DownloadButton
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.ErrorMessage
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.Loading
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.MangaCover
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.label
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.PublishCover
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
+import pt.aguiarvieira.m3mangadex.core.model.ChapterOrder
 import pt.aguiarvieira.m3mangadex.core.model.ChapterProgress
 import pt.aguiarvieira.m3mangadex.core.model.Covers
 import pt.aguiarvieira.m3mangadex.core.model.Descriptions
+import pt.aguiarvieira.m3mangadex.core.model.Download
 import pt.aguiarvieira.m3mangadex.core.model.Languages
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaStats
@@ -105,6 +108,7 @@ fun MangaRoute(
     val reading by viewModel.reading.collectAsStateWithLifecycle()
     val otherLanguages by viewModel.otherLanguages.collectAsStateWithLifecycle()
     val account by viewModel.account.collectAsStateWithLifecycle()
+    val downloads by viewModel.downloads.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -122,6 +126,10 @@ fun MangaRoute(
         onSetStatus = viewModel::setStatus,
         onToggleFollow = viewModel::toggleFollow,
         onToggleRead = viewModel::toggleRead,
+        downloads = downloads,
+        onDownload = viewModel::download,
+        onDeleteDownload = viewModel::deleteDownload,
+        onRetryDownload = viewModel::retryDownload,
         snackbar = snackbar,
         onBack = onBack,
         onRetry = viewModel::retry,
@@ -168,6 +176,10 @@ fun MangaScreen(
     onSetStatus: (ReadingStatus?) -> Unit,
     onToggleFollow: () -> Unit,
     onToggleRead: (Chapter) -> Unit,
+    downloads: Map<String, Download>,
+    onDownload: (List<Chapter>) -> Unit,
+    onDeleteDownload: (String) -> Unit,
+    onRetryDownload: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -184,6 +196,10 @@ fun MangaScreen(
                     IconButton(onClick = onBack) {
                         Icon(painterResource(DsR.drawable.ic_arrow_back), stringResource(DsR.string.ds_back))
                     }
+                },
+                actions = {
+                    val chapters = ((state as? MangaUiState.Loaded)?.chapters as? ChaptersState.Loaded)?.all
+                    if (!chapters.isNullOrEmpty()) DownloadMenu(chapters, reading.read, downloads, onDownload)
                 },
             )
         },
@@ -237,9 +253,15 @@ fun MangaScreen(
                         reading,
                         otherLanguages,
                         onToggleLanguage,
-                        onOpenChapter,
-                        onToggleRead,
-                        onRetry
+                        ChapterActions(
+                            open = onOpenChapter,
+                            toggleRead = onToggleRead,
+                            download = { onDownload(listOf(it)) },
+                            deleteDownload = onDeleteDownload,
+                            retryDownload = onRetryDownload,
+                        ),
+                        downloads,
+                        onRetry,
                     )
                 }
             }
@@ -369,8 +391,8 @@ private fun LazyListScope.chapters(
     reading: ReadingState,
     otherLanguages: OtherLanguages,
     onToggleLanguage: (String) -> Unit,
-    onOpenChapter: (Chapter) -> Unit,
-    onToggleRead: (Chapter) -> Unit,
+    actions: ChapterActions,
+    downloads: Map<String, Download>,
     onRetry: () -> Unit,
 ) {
     when (state) {
@@ -413,7 +435,7 @@ private fun LazyListScope.chapters(
                     )
                 }
             }
-            state.volumes.forEach { group -> volume(group, languages.size > 1, reading, onOpenChapter, onToggleRead) }
+            state.volumes.forEach { group -> volume(group, languages.size > 1, reading, downloads, actions) }
         }
     }
 }
@@ -423,8 +445,8 @@ private fun LazyListScope.volume(
     group: VolumeGroup,
     showLanguage: Boolean,
     reading: ReadingState,
-    onOpenChapter: (Chapter) -> Unit,
-    onToggleRead: (Chapter) -> Unit,
+    downloads: Map<String, Download>,
+    actions: ChapterActions,
 ) {
     stickyHeader(key = "volume-${group.volume}") {
         Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
@@ -443,8 +465,8 @@ private fun LazyListScope.volume(
             progress = reading.progress[chapter.id],
             read = chapter.id in reading.read,
             showLanguage = showLanguage,
-            onClick = { onOpenChapter(chapter) },
-            onLongClick = { onToggleRead(chapter) },
+            download = downloads[chapter.id],
+            actions = actions,
         )
     }
 }
@@ -550,6 +572,56 @@ private fun OtherLanguagesRow(
     }
 }
 
+/** "Download next 5 unread" / "Download all unread", oldest unread first. */
+@Composable
+private fun DownloadMenu(
+    chapters: List<Chapter>,
+    read: Set<String>,
+    downloads: Map<String, Download>,
+    onDownload: (List<Chapter>) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    val unread =
+        remember(chapters, read, downloads) {
+            chapters
+                .filter { !it.isExternal && it.id !in read && it.id !in downloads }
+                .sortedWith(ChapterOrder)
+                .distinctBy { it.number ?: it.id }
+        }
+    Box {
+        IconButton(onClick = { open = true }) {
+            Icon(painterResource(DsR.drawable.ic_download), stringResource(R.string.manga_download_menu))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.manga_download_next, NEXT_DOWNLOADS)) },
+                enabled = unread.isNotEmpty(),
+                onClick = {
+                    open = false
+                    onDownload(unread.take(NEXT_DOWNLOADS))
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(pluralStringResource(R.plurals.manga_download_unread, unread.size, unread.size)) },
+                enabled = unread.isNotEmpty(),
+                onClick = {
+                    open = false
+                    onDownload(unread)
+                },
+            )
+        }
+    }
+}
+
+/** What a chapter row can do. */
+internal class ChapterActions(
+    val open: (Chapter) -> Unit,
+    val toggleRead: (Chapter) -> Unit,
+    val download: (Chapter) -> Unit,
+    val deleteDownload: (String) -> Unit,
+    val retryDownload: (String) -> Unit,
+)
+
 /** Read chapters fade back; one left half-way says where. */
 @Composable
 private fun ChapterRow(
@@ -557,8 +629,8 @@ private fun ChapterRow(
     progress: ChapterProgress?,
     read: Boolean,
     showLanguage: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
+    download: Download?,
+    actions: ChapterActions,
 ) {
     val number =
         chapter.number?.let { stringResource(R.string.manga_chapter, it) } ?: stringResource(R.string.manga_oneshot)
@@ -584,17 +656,23 @@ private fun ChapterRow(
                 ?.let { stringResource(R.string.manga_page_progress, it.page + 1, it.pageCount) },
         ).joinToString(" · ")
     ListItem(
-        onClick = onClick,
-        onLongClick = onLongClick,
+        onClick = { actions.open(chapter) },
+        onLongClick = { actions.toggleRead(chapter) },
         onLongClickLabel = stringResource(if (read) R.string.manga_mark_unread else R.string.manga_mark_read),
         modifier = Modifier.alpha(if (read) READ_ALPHA else 1f),
         supportingContent = { Text(supporting, maxLines = 2, overflow = TextOverflow.Ellipsis) },
-        trailingContent =
+        trailingContent = {
             if (chapter.isExternal) {
-                { Icon(painterResource(DsR.drawable.ic_open_in_new), contentDescription = null) }
+                Icon(painterResource(DsR.drawable.ic_open_in_new), contentDescription = null)
             } else {
-                null
-            },
+                DownloadButton(
+                    download = download,
+                    onDownload = { actions.download(chapter) },
+                    onDelete = { actions.deleteDownload(chapter.id) },
+                    onRetry = { actions.retryDownload(chapter.id) },
+                )
+            }
+        },
     ) { Text(headline, maxLines = 1, overflow = TextOverflow.Ellipsis) }
 }
 
@@ -609,3 +687,4 @@ private val PublicationStatus.label: Int
 
 private const val COLLAPSED_LINES = 4
 private const val READ_ALPHA = 0.5f
+private const val NEXT_DOWNLOADS = 5

@@ -1,0 +1,15 @@
+<resources>
+    <string name="channel_downloads">Downloads</string>
+    <string name="channel_downloads_description">Progress of chapters being saved for offline reading.</string>
+    <string name="channel_new_chapters">New chapters</string>
+    <string name="channel_new_chapters_description">New chapters of the manga you follow.</string>
+    <string name="download_running">Downloading %1$s</string>
+    <string name="download_progress">%1$s · page %2$d of %3$d</string>
+    <string name="download_starting">Preparing downloads…</string>
+    <string name="notify_chapter">Ch. %1$s</string>
+    <string name="notify_oneshot">Oneshot</string>
+    <plurals name="notify_new_chapters">
+        <item quantity="one">%1$d new chapter</item>
+        <item quantity="other">%1$d new chapters</item>
+    </plurals>
+</resources>

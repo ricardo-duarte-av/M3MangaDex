@@ -26,10 +26,12 @@ import pt.aguiarvieira.m3mangadex.core.data.ChapterLanguages
 import pt.aguiarvieira.m3mangadex.core.data.LibraryRepository
 import pt.aguiarvieira.m3mangadex.core.data.MangaRepository
 import pt.aguiarvieira.m3mangadex.core.data.ReadingRepository
+import pt.aguiarvieira.m3mangadex.core.data.download.DownloadRepository
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
 import pt.aguiarvieira.m3mangadex.core.model.ChapterOrder
 import pt.aguiarvieira.m3mangadex.core.model.ChapterProgress
+import pt.aguiarvieira.m3mangadex.core.model.Download
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaStats
 import pt.aguiarvieira.m3mangadex.core.model.ReadingStatus
@@ -97,6 +99,7 @@ class MangaViewModel
         private val repository: MangaRepository,
         private val readingRepository: ReadingRepository,
         private val library: LibraryRepository,
+        private val downloadRepository: DownloadRepository,
         auth: AuthRepository,
         chapterLanguages: ChapterLanguages,
         preferences: PreferencesDataSource,
@@ -137,6 +140,25 @@ class MangaViewModel
                 val available = (state as? MangaUiState.Loaded)?.manga?.availableLanguages.orEmpty()
                 OtherLanguages(available.filterNot { it in global }.sorted(), extra.toSet())
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), OtherLanguages())
+
+        val downloads: StateFlow<Map<String, Download>> =
+            downloadRepository
+                .forManga(
+                    mangaId
+                ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), emptyMap())
+
+        fun download(chapters: List<Chapter>) {
+            val manga = (_state.value as? MangaUiState.Loaded)?.manga ?: return
+            viewModelScope.launch { downloadRepository.enqueue(manga, chapters) }
+        }
+
+        fun deleteDownload(chapterId: String) {
+            viewModelScope.launch { downloadRepository.delete(chapterId) }
+        }
+
+        fun retryDownload(chapterId: String) {
+            viewModelScope.launch { downloadRepository.retry(chapterId) }
+        }
 
         private var loading: Job? = null
         private var languages: List<String>? = null

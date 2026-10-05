@@ -21,6 +21,7 @@ import pt.aguiarvieira.m3mangadex.core.data.ChapterLanguages
 import pt.aguiarvieira.m3mangadex.core.data.LibraryRepository
 import pt.aguiarvieira.m3mangadex.core.data.MangaRepository
 import pt.aguiarvieira.m3mangadex.core.data.ReadingRepository
+import pt.aguiarvieira.m3mangadex.core.data.download.DownloadRepository
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
 import pt.aguiarvieira.m3mangadex.core.model.AtHomeServer
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
@@ -57,6 +58,8 @@ data class ReaderUiState(
     val pageFit: PageFit = PageFit.Auto,
     val cropBorders: Boolean = true,
     val languages: List<String> = emptyList(),
+    /** Reading a downloaded copy. */
+    val offline: Boolean = false,
 ) {
     /** The user's choice for this manga, else its natural mode (right-to-left for manga, …). */
     val mode: ReaderMode get() = savedMode ?: manga?.let(ReaderMode::defaultFor) ?: ReaderMode.LeftToRight
@@ -74,6 +77,7 @@ class ReaderViewModel
         private val preferences: PreferencesDataSource,
         private val auth: AuthRepository,
         private val library: LibraryRepository,
+        private val downloads: DownloadRepository,
     ) : ViewModel() {
         private val _state = MutableStateFlow(ReaderUiState())
         val state: StateFlow<ReaderUiState> = _state.asStateFlow()
@@ -109,12 +113,18 @@ class ReaderViewModel
         fun load() {
             viewModelScope.launch {
                 _state.update { it.copy(pages = PagesState.Loading) }
+                // A downloaded chapter reads from its files, online or not.
+                val download = downloads.download(chapterId)
+                localPages = downloads.pages(chapterId)?.map { it.toURI().toString() }
                 val languages = chapterLanguages.forManga(mangaId).first()
                 val manga = attempt { repository.manga(mangaId) }
                 val chapters = attempt { repository.chapters(mangaId, languages) }.orEmpty()
-                val chapter = chapters.firstOrNull { it.id == chapterId } ?: attempt { repository.chapter(chapterId) }
-                server = attempt { repository.atHomeServer(chapterId) }
-                val pageCount = server?.pageCount ?: 0
+                val chapter =
+                    chapters.firstOrNull { it.id == chapterId }
+                        ?: localPages?.let { download?.toChapter() }
+                        ?: attempt { repository.chapter(chapterId) }
+                if (localPages == null) server = attempt { repository.atHomeServer(chapterId) }
+                val pageCount = pageCount()
                 if (chapter == null || pageCount == 0) {
                     _state.update { it.copy(manga = manga, chapter = chapter, pages = PagesState.Failed) }
                     return@launch
@@ -127,6 +137,7 @@ class ReaderViewModel
                         chapter = chapter,
                         neighbors = neighbors(chapters, chapter),
                         startPage = start,
+                        offline = localPages != null,
                         // Read it now rather than wait for the collector, so the first frame of pages
                         // is already in the right mode.
                         savedMode = reading.readerMode(mangaId).first(),
@@ -136,10 +147,14 @@ class ReaderViewModel
             }
         }
 
+        private var localPages: List<String>? = null
+
+        private fun pageCount(): Int = localPages?.size ?: server?.pageCount ?: 0
+
         /** The page (last of a spread) now on screen; saved as progress. */
         fun onPageShow(page: Int) {
             val chapter = _state.value.chapter ?: return
-            val count = server?.pageCount ?: return
+            val count = pageCount().takeIf { it > 0 } ?: return
             viewModelScope.launch { reading.saveProgress(mangaId, chapter, page.coerceIn(0, count - 1), count) }
             // Reaching the last page marks the chapter read on MangaDex too (and in its history).
             if (page >= count - 1 && !syncedRead && auth.session.value is Session.LoggedIn) {
@@ -162,7 +177,7 @@ class ReaderViewModel
          */
         fun onPageFail(page: Int) {
             _state.update { it.copy(failedPages = it.failedPages + page) }
-            viewModelScope.launch { refreshServer(force = false) }
+            if (localPages == null) viewModelScope.launch { refreshServer(force = false) }
         }
 
         fun retryPage(page: Int) {
@@ -203,8 +218,12 @@ class ReaderViewModel
             }
 
         private fun publishPages() {
-            val server = server ?: return
-            val urls = List(server.pageCount) { server.pageUrl(it, dataSaver) }
+            val local = localPages
+            val urls =
+                when {
+                    local != null -> local
+                    else -> server?.let { server -> List(server.pageCount) { server.pageUrl(it, dataSaver) } } ?: return
+                }
             _state.update { it.copy(pages = PagesState.Loaded(urls, generation)) }
         }
 

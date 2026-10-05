@@ -25,3 +25,22 @@ data class MangaSettingsEntity(
     /** Comma-separated chapter languages shown for this manga on top of the global ones (v2). */
     val extraLanguages: String? = null,
 )
+
+/** A chapter queued for, or saved by, the downloader (schema v3). */
+@Entity(tableName = "downloads", indices = [Index("mangaId")])
+data class DownloadEntity(
+    @PrimaryKey val chapterId: String,
+    val mangaId: String,
+    val mangaTitle: String,
+    val coverUrl: String?,
+    val chapterNumber: String?,
+    val chapterTitle: String?,
+    val language: String,
+    /** A `DownloadState` name. */
+    val state: String,
+    val pagesDone: Int,
+    val pageCount: Int,
+    val sizeBytes: Long,
+    /** Epoch millis; downloads run in this order. */
+    val createdAt: Long,
+)
