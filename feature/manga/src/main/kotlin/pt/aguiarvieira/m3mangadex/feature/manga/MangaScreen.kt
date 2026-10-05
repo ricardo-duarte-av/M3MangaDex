@@ -48,7 +48,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,6 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -69,12 +69,13 @@ import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import kotlinx.coroutines.launch
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.DownloadButton
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.ErrorMessage
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.Loading
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.MangaCover
+import pt.aguiarvieira.m3mangadex.core.designsystem.component.SharedKeys
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.label
+import pt.aguiarvieira.m3mangadex.core.designsystem.component.sharedElement
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.PublishCover
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
 import pt.aguiarvieira.m3mangadex.core.model.ChapterOrder
@@ -91,16 +92,18 @@ import pt.aguiarvieira.m3mangadex.core.model.coverUrl
 import pt.aguiarvieira.m3mangadex.core.designsystem.R as DsR
 
 /**
- * A manga's details and chapter list. [onReadChapter] opens a MangaDex-hosted chapter (null until
- * the reader exists); chapters hosted by publishers always open in a Custom Tab.
+ * A manga's details and chapter list. [onReadChapter] opens a MangaDex-hosted chapter in the
+ * reader; chapters hosted by publishers open in a Custom Tab.
  */
 @Composable
 fun MangaRoute(
     mangaId: String,
     onBack: () -> Unit,
     onOpenTag: (String) -> Unit,
+    onReadChapter: (Chapter) -> Unit,
     modifier: Modifier = Modifier,
-    onReadChapter: ((Chapter) -> Unit)? = null,
+    /** The list the manga was opened from; its cover there grows into this header. */
+    coverScope: String? = null,
     viewModel: MangaViewModel =
         hiltViewModel<MangaViewModel, MangaViewModel.Factory>(key = "manga:$mangaId") { it.create(mangaId) },
 ) {
@@ -111,8 +114,6 @@ fun MangaRoute(
     val downloads by viewModel.downloads.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val readerComing = stringResource(R.string.manga_reader_coming)
     val syncFailed = stringResource(R.string.manga_sync_failed)
     LaunchedEffect(account.syncFailures) { if (account.syncFailures > 0) snackbar.showSnackbar(syncFailed) }
     // The whole app, navigation bar included, takes on the cover's colours while this is open.
@@ -130,16 +131,13 @@ fun MangaRoute(
         onDownload = viewModel::download,
         onDeleteDownload = viewModel::deleteDownload,
         onRetryDownload = viewModel::retryDownload,
+        coverScope = coverScope,
         snackbar = snackbar,
         onBack = onBack,
         onRetry = viewModel::retry,
         onOpenTag = onOpenTag,
         onOpenChapter = { chapter ->
-            when {
-                chapter.isExternal -> openExternal(context, chapter.externalUrl!!)
-                onReadChapter != null -> onReadChapter(chapter)
-                else -> scope.launch { snackbar.showSnackbar(readerComing) }
-            }
+            if (chapter.isExternal) openExternal(context, chapter.externalUrl!!) else onReadChapter(chapter)
         },
         modifier = modifier,
     )
@@ -181,6 +179,7 @@ fun MangaScreen(
     onDeleteDownload: (String) -> Unit,
     onRetryDownload: (String) -> Unit,
     modifier: Modifier = Modifier,
+    coverScope: String? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -218,7 +217,7 @@ fun MangaScreen(
 
             is MangaUiState.Loaded -> {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().testTag("manga-details"),
                     contentPadding =
                         PaddingValues(
                             top = padding.calculateTopPadding(),
@@ -226,13 +225,19 @@ fun MangaScreen(
                                 padding.calculateBottomPadding() + 16.dp
                         ),
                 ) {
-                    item(key = "header") { Header(state.manga, state.stats, state.languages) }
+                    item(key = "header") { Header(state.manga, state.stats, state.languages, coverScope) }
                     item(key = "actions") {
                         val resume = reading.resume
                         Button(
                             onClick = { resume?.let(onOpenChapter) },
                             enabled = resume != null,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        horizontal = 16.dp,
+                                        vertical = 8.dp
+                                    ).testTag("read"),
                         ) {
                             val number = resume?.number
                             Text(
@@ -275,6 +280,7 @@ private fun Header(
     manga: Manga,
     stats: MangaStats?,
     languages: List<String>,
+    coverScope: String?,
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
         // The cover, blurred and faded into the surface, as a backdrop.
@@ -296,7 +302,7 @@ private fun Header(
             MangaCover(
                 url = manga.coverUrl(Covers.Size.Medium),
                 contentDescription = null,
-                modifier = Modifier.width(120.dp),
+                modifier = Modifier.width(120.dp).sharedElement(coverScope?.let { SharedKeys.cover(manga.id, it) }),
                 shape = MaterialTheme.shapes.large,
             )
             Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.weight(1f)) {

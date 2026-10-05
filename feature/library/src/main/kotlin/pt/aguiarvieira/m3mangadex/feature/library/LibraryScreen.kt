@@ -36,6 +36,7 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.component.ErrorMessage
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.Loading
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.LoginPrompt
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.MangaCard
+import pt.aguiarvieira.m3mangadex.core.designsystem.component.SharedKeys
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.label
 import pt.aguiarvieira.m3mangadex.core.model.ReadingStatus
 import pt.aguiarvieira.m3mangadex.core.model.coverUrl
@@ -43,7 +44,7 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.R as DsR
 
 @Composable
 fun LibraryRoute(
-    onOpenManga: (String) -> Unit,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
     onLogin: () -> Unit,
     onOpenDownloads: () -> Unit,
     modifier: Modifier = Modifier,
@@ -70,7 +71,7 @@ fun LibraryScreen(
     languages: List<String>,
     onFilter: (ReadingStatus?) -> Unit,
     onRefresh: () -> Unit,
-    onOpenManga: (String) -> Unit,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
     onLogin: () -> Unit,
     onOpenDownloads: () -> Unit,
     modifier: Modifier = Modifier,
@@ -132,7 +133,8 @@ fun LibraryScreen(
                                 MangaCard(
                                     title = entry.manga.displayTitle(languages),
                                     coverUrl = entry.manga.coverUrl(),
-                                    onClick = { onOpenManga(entry.manga.id) },
+                                    onClick = { onOpenManga(entry.manga.id, LIBRARY_SCOPE) },
+                                    sharedKey = SharedKeys.cover(entry.manga.id, LIBRARY_SCOPE),
                                 )
                             }
                         }
@@ -178,3 +180,5 @@ private fun StatusFilters(
         }
     }
 }
+
+private const val LIBRARY_SCOPE = "library"

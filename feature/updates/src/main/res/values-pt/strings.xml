@@ -1,0 +1,8 @@
+<resources>
+    <string name="updates_title">Novidades</string>
+    <string name="updates_logged_out_title">Novos capítulos, à medida que saem</string>
+    <string name="updates_logged_out_body">Inicie sessão para ver os capítulos mais recentes das mangas que segue na MangaDex.</string>
+    <string name="updates_empty">Não há capítulos novos nos seus idiomas. Siga mangas (adicione-as à biblioteca) para ver aqui os novos capítulos.</string>
+    <string name="updates_chapter">Cap. %1$s</string>
+    <string name="updates_oneshot">Capítulo único</string>
+</resources>

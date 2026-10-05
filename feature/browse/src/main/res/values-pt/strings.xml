@@ -1,0 +1,13 @@
+<resources>
+    <string name="browse_search_hint">Pesquisar mangas</string>
+    <string name="browse_advanced_search">Pesquisa avançada</string>
+    <string name="browse_clear">Limpar</string>
+    <string name="browse_collapse">Fechar pesquisa</string>
+    <string name="browse_section_popular_new">Novidades populares</string>
+    <string name="browse_section_latest">Atualizados recentemente</string>
+    <string name="browse_section_recent">Adicionados recentemente</string>
+    <string name="browse_section_followed">Mais seguidos</string>
+    <string name="browse_section_rated">Mais bem avaliados</string>
+    <string name="browse_suggestions_empty">Nenhum título corresponde a “%1$s”</string>
+    <string name="browse_suggestions_search_all">Pesquisar “%1$s”</string>
+</resources>

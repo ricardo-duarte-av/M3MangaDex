@@ -1,0 +1,1 @@
+Leitor de mangas da MangaDex em Material 3, para telemóveis, tablets e dobráveis.

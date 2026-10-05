@@ -1,0 +1,1 @@
+A Material 3 manga reader for MangaDex, made for phones, tablets and foldables.

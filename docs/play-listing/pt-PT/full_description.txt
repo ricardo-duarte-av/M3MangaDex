@@ -1,0 +1,25 @@
+A M3MangaDex é um leitor não oficial e de código aberto para a MangaDex, feito com Material 3 Expressive.
+
+EXPLORAR E PESQUISAR
+• Novidades populares, atualizados recentemente, mais seguidos e mais bem avaliados
+• Pesquisa com sugestões imediatas, filtros (estado, demografia, idioma, etiquetas a incluir ou excluir) e ordenação
+• Capítulos nos seus idiomas, com outras traduções à distância de um toque
+
+LER COM CONFORTO
+• Modos da esquerda para a direita, da direita para a esquerda, vertical e webtoon, escolhidos por manga
+• Zoom com dois dedos e toque duplo, ajuste ao ecrã ou à largura, e margens das digitalizações cortadas automaticamente
+• Páginas duplas em tablets e dobráveis na horizontal
+• Mudar de página com as teclas de volume, ecrã inteiro imersivo, progresso guardado
+
+A SUA BIBLIOTECA, SINCRONIZADA
+• Inicie sessão com o seu cliente de API pessoal da MangaDex para sincronizar a biblioteca, os títulos seguidos e os capítulos lidos
+• Um feed de Novidades com os capítulos novos das mangas que segue
+• Notificações quando as mangas que segue têm capítulos novos
+
+OFFLINE
+• Transfira capítulos e leia-os sem ligação
+
+COM O ASPETO DO SEU TELEMÓVEL E DA MANGA
+• Cor dinâmica a partir do fundo do ecrã, e ecrãs com as cores da capa de cada manga
+
+O conteúdo é disponibilizado pela MangaDex (mangadex.org) e pelos seus grupos de tradução, creditados no leitor. A M3MangaDex não tem qualquer ligação à MangaDex. Esta versão mostra apenas títulos classificados como Seguros e Sugestivos.

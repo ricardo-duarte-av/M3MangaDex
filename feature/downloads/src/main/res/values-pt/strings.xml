@@ -1,0 +1,11 @@
+<resources>
+    <string name="downloads_title">Transferências</string>
+    <string name="downloads_empty">Ainda não transferiu nada. Use os botões de transferência nos capítulos de uma manga para os ler offline.</string>
+    <string name="downloads_total">%1$s neste dispositivo</string>
+    <string name="downloads_chapter">Cap. %1$s</string>
+    <string name="downloads_oneshot">Capítulo único</string>
+    <string name="downloads_queued">Em espera</string>
+    <string name="downloads_progress">A transferir · %1$d de %2$d páginas</string>
+    <string name="downloads_failed">Falhou. Toque no ícone para tentar novamente</string>
+    <string name="downloads_delete_manga">Apagar tudo de %1$s</string>
+</resources>

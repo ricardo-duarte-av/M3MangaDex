@@ -1,0 +1,39 @@
+<resources>
+    <string name="manga_read">Começar a ler</string>
+    <string name="manga_continue">Continuar cap. %1$s</string>
+    <string name="manga_page_progress">Página %1$d de %2$d</string>
+    <string name="manga_add_to_library">Adicionar à biblioteca</string>
+    <string name="manga_remove_from_library">Remover da biblioteca</string>
+    <string name="manga_follow">Seguir (novos capítulos em Novidades)</string>
+    <string name="manga_unfollow">Deixar de seguir</string>
+    <string name="manga_sync_failed">Não foi possível guardar isso na MangaDex.</string>
+    <string name="manga_mark_read">Marcar como lido</string>
+    <string name="manga_mark_unread">Marcar como não lido</string>
+    <string name="manga_download_menu">Transferir capítulos</string>
+    <string name="manga_download_next">Transferir os próximos %1$d por ler</string>
+    <plurals name="manga_download_unread">
+        <item quantity="one">Transferir %1$d capítulo por ler</item>
+        <item quantity="other">Transferir os %1$d capítulos por ler</item>
+    </plurals>
+    <string name="manga_more">Mais</string>
+    <string name="manga_less">Menos</string>
+    <string name="manga_chapters">Capítulos</string>
+    <string name="manga_chapters_count">%1$d capítulos</string>
+    <string name="manga_no_chapters">Não há capítulos nos seus idiomas (%1$s). Escolha outro idioma acima, ou altere os seus nas Definições.</string>
+    <plurals name="manga_other_languages">
+        <item quantity="one">Também em %1$d outro idioma</item>
+        <item quantity="other">Também em %1$d outros idiomas</item>
+    </plurals>
+    <string name="manga_chapters_failed">Não foi possível carregar os capítulos.</string>
+    <string name="manga_volume">Volume %1$s</string>
+    <string name="manga_no_volume">Sem volume</string>
+    <string name="manga_chapter">Cap. %1$s</string>
+    <string name="manga_oneshot">Capítulo único</string>
+    <string name="manga_no_group">Sem grupo</string>
+    <string name="manga_external">Alojado no site da editora</string>
+    <string name="manga_follows">%1$s seguidores</string>
+    <string name="manga_status_ongoing">Em curso</string>
+    <string name="manga_status_completed">Concluído</string>
+    <string name="manga_status_hiatus">Em pausa</string>
+    <string name="manga_status_cancelled">Cancelado</string>
+</resources>

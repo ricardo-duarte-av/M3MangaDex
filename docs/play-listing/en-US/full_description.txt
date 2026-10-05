@@ -1,0 +1,25 @@
+M3MangaDex is an unofficial, open-source reader for MangaDex, built with Material 3 Expressive.
+
+BROWSE AND SEARCH
+• Popular new titles, latest updates, most followed and top rated
+• Search with live suggestions, filters (status, demographic, language, tags to include or exclude) and sorting
+• Chapters in your languages, with other translations a tap away
+
+READ COMFORTABLY
+• Left-to-right, right-to-left, vertical and webtoon modes, chosen per manga
+• Pinch and double-tap zoom, page fit to screen or width, and scan borders cropped automatically
+• Two-page spreads on tablets and foldables in landscape
+• Volume-key paging, immersive full screen, progress remembered
+
+YOUR LIBRARY, IN SYNC
+• Log in with your MangaDex personal API client to sync your library, follows and read chapters
+• An Updates feed with new chapters of the manga you follow
+• Notifications when followed manga get new chapters
+
+OFFLINE
+• Download chapters and read them without a connection
+
+LOOKS LIKE YOUR PHONE, AND LIKE THE MANGA
+• Dynamic colour from your wallpaper, and screens tinted with each manga's cover colours
+
+Content is provided by MangaDex (mangadex.org) and its scanlation groups, who are credited in the reader. M3MangaDex is not affiliated with MangaDex. This version shows titles rated Safe and Suggestive only.

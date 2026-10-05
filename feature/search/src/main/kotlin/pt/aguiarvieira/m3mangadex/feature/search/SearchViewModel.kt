@@ -27,6 +27,8 @@ import kotlinx.coroutines.launch
 import pt.aguiarvieira.m3mangadex.core.data.BrowseSection
 import pt.aguiarvieira.m3mangadex.core.data.MangaRepository
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
+import pt.aguiarvieira.m3mangadex.core.model.ContentPolicy
+import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaFilter
 import pt.aguiarvieira.m3mangadex.core.model.MangaOrder
@@ -57,7 +59,11 @@ class SearchViewModel
         @Assisted args: SearchArgs,
         private val repository: MangaRepository,
         preferences: PreferencesDataSource,
+        policy: ContentPolicy,
     ) : ViewModel() {
+        /** The ratings this build lets the user filter by. */
+        val selectableRatings: List<ContentRating> = policy.selectable
+
         private val _filter = MutableStateFlow(initialFilter(args))
 
         /** The filters and sort; the title lives in [title] so typing can be debounced on its own. */

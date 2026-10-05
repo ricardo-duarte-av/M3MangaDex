@@ -1,0 +1,92 @@
+name: Fix up branch
+
+# Formats the code (spotlessApply: ktlint) and re-records the Roborazzi goldens on a branch, commits
+# whatever changed, then starts CI on it — so nothing ever needs a local build. Run it with:
+#   gh workflow run screenshots.yml --ref <branch>
+# (The file keeps its old name: workflow_dispatch finds workflows by the default branch's file names.)
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: fixup-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: "21"
+  CMDLINE_TOOLS_URL: https://dl.google.com/android/repository/commandlinetools-linux-14742923_latest.zip
+  SDK_PACKAGES: "platform-tools platforms;android-37.1 build-tools;37.0.0"
+
+jobs:
+  fixup:
+    name: Format, record goldens, commit, start CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "::error::Fix up a work branch; main only changes through a merge."
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: ./.github/actions/android-sdk
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Cache Robolectric runtime jars
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/robolectric
+          key: robolectric-${{ hashFiles('gradle/libs.versions.toml', '**/src/test/resources/robolectric.properties') }}
+          restore-keys: robolectric-
+
+      - name: Format
+        run: ./gradlew spotlessApply --stacktrace
+
+      # Report-only here (CI enforces it): findings show in this run instead of one round trip later.
+      - name: Detekt
+        id: detekt
+        continue-on-error: true
+        run: ./gradlew detekt --stacktrace
+
+      # Recording compiles the code: if that fails, the formatting still gets committed and the job
+      # fails at the end with the compiler's messages in this step's log.
+      - name: Record screenshots
+        id: record
+        continue-on-error: true
+        run: ./gradlew recordRoborazziDebug -PwarningsAsErrors=true --stacktrace
+
+      - name: Commit changes
+        run: |
+          git add -A -- '*.kt' '*.kts' '**/src/test/screenshots/**'
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+          git diff --cached --stat
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "Fix up: format and record screenshot goldens"
+          git push
+
+      - name: Start CI
+        if: steps.record.outcome == 'success' && steps.detekt.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run ci.yml --ref "${GITHUB_REF_NAME}"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: screenshots
+          path: "**/src/test/screenshots/**"
+          if-no-files-found: ignore
+
+      - name: Fail if detekt or recording failed
+        if: steps.record.outcome != 'success' || steps.detekt.outcome != 'success'
+        run: |
+          echo "::error::detekt: ${{ steps.detekt.outcome }}, recording: ${{ steps.record.outcome }} — see those steps."
+          exit 1

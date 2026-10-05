@@ -1,0 +1,17 @@
+<resources>
+    <string name="ds_see_all">Ver tudo</string>
+    <string name="ds_retry">Tentar novamente</string>
+    <string name="ds_back">Voltar</string>
+    <string name="ds_error_generic">Não foi possível carregar. Verifique a ligação e tente novamente.</string>
+    <string name="ds_log_in">Iniciar sessão</string>
+    <string name="ds_status_reading">A ler</string>
+    <string name="ds_status_plan_to_read">Para ler</string>
+    <string name="ds_status_on_hold">Em pausa</string>
+    <string name="ds_status_re_reading">A reler</string>
+    <string name="ds_status_completed">Concluído</string>
+    <string name="ds_status_dropped">Abandonado</string>
+    <string name="ds_download">Transferir</string>
+    <string name="ds_download_retry">A transferência falhou. Tentar novamente</string>
+    <string name="ds_download_delete">Apagar transferência</string>
+    <string name="ds_download_cancel">Cancelar transferência</string>
+</resources>

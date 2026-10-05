@@ -21,6 +21,8 @@ fun MangaCard(
     coverUrl: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** [SharedKeys.cover]: the cover grows into the details screen's. */
+    sharedKey: String? = null,
 ) {
     Column(
         modifier =
@@ -31,7 +33,11 @@ fun MangaCard(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         // The title already names the card for TalkBack; the cover adds nothing.
-        MangaCover(url = coverUrl, contentDescription = null, modifier = Modifier.fillMaxWidth())
+        MangaCover(
+            url = coverUrl,
+            contentDescription = null,
+            modifier = Modifier.fillMaxWidth().sharedElement(sharedKey)
+        )
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,

@@ -61,6 +61,12 @@ Releases are cut by pushing a `v<versionName>` tag. See `RELEASE.md`.
   stateless `Screen` each, with a Roborazzi screenshot of the `Screen`.
 - Navigation keys live in `app/.../navigation/M3MangaDexApp.kt`. `MangaKey` is the detail pane, and the
   others are list panes.
+- Cover transitions: `Modifier.sharedElement(SharedKeys.cover(id, scope))` (core:designsystem) on the list's
+  cover and on the details header. `MangaKey.coverScope` carries the tapped list's scope. Destinations that
+  take part are wrapped in `Destination { }`. Don't pass `sharedTransitionScope` to `NavDisplay` (whole
+  entries become shared and the list never exits), and keep list-detail scenes off compact widths (nothing
+  transitions inside one scene). Feed new lists through `DefaultMangaRepository.rememberPreviews`, so the
+  details header has a target on its first frame.
 
 - `app`: Activity, Coil `ImageLoader` (on the image client) and navigation shell (`navigation/M3MangaDexApp.kt`). It uses `NavigationSuiteScaffold`,
   with one Navigation 3 back stack per tab and the list-detail scene strategy.

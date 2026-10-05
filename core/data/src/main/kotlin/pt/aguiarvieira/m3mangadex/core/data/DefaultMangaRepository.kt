@@ -12,6 +12,7 @@ import kotlinx.coroutines.sync.withLock
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
 import pt.aguiarvieira.m3mangadex.core.model.AtHomeServer
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
+import pt.aguiarvieira.m3mangadex.core.model.ContentPolicy
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaFilter
@@ -28,10 +29,18 @@ internal class DefaultMangaRepository
     constructor(
         private val api: MangaDexApi,
         private val preferences: PreferencesDataSource,
+        private val policy: ContentPolicy,
     ) : MangaRepository {
         private val tagsLock = Mutex()
         private var tags: List<Tag>? = null
         private val mangaCache = ExpiringCache<String, Manga>(CACHE_SIZE, CACHE_TTL_MILLIS)
+        private val previews = ExpiringCache<String, Manga>(PREVIEW_CACHE_SIZE, CACHE_TTL_MILLIS)
+
+        override fun preview(id: String): Manga? = mangaCache[id] ?: previews[id]
+
+        /** Lists' manga, kept for [preview]. */
+        fun rememberPreviews(manga: List<Manga>): List<Manga> = manga.onEach { previews[it.id] = it }
+
         private val chapterCache =
             ExpiringCache<Pair<String, List<String>>, List<Chapter>>(CACHE_SIZE, CACHE_TTL_MILLIS)
 
@@ -40,12 +49,16 @@ internal class DefaultMangaRepository
             limit: Int,
         ): List<Manga> {
             val prefs = preferences.preferences.first()
-            return api.searchManga(section.filter(prefs.chapterLanguages).withRatings(), 0, limit).items
+            return rememberPreviews(
+                api.searchManga(section.filter(prefs.chapterLanguages).withRatings(), 0, limit).items
+            )
         }
 
         override fun search(filter: MangaFilter): Flow<PagingData<Manga>> =
             Pager(PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false)) {
-                MangaPagingSource { offset, limit -> api.searchManga(filter.withRatings(), offset, limit) }
+                MangaPagingSource { offset, limit ->
+                    api.searchManga(filter.withRatings(), offset, limit).also { rememberPreviews(it.items) }
+                }
             }.flow
 
         /**
@@ -62,7 +75,7 @@ internal class DefaultMangaRepository
                 val popular =
                     async { api.searchManga(filter.copy(order = MangaOrder.Follows), 0, POPULAR_SUGGESTIONS).items }
                 val relevant = async { api.searchManga(filter.copy(order = MangaOrder.Relevance), 0, limit).items }
-                (popular.await() + relevant.await()).distinctBy { it.id }.take(limit)
+                rememberPreviews((popular.await() + relevant.await()).distinctBy { it.id }.take(limit))
             }
 
         override suspend fun manga(id: String): Manga = mangaCache.getOrPut(id) { api.manga(id) }
@@ -99,20 +112,26 @@ internal class DefaultMangaRepository
                 tags ?: api.tags().sortedBy { it.name }.also { tags = it }
             }
 
+        /** The user's ratings when the filter names none; either way, never beyond this build's policy. */
         private suspend fun MangaFilter.withRatings(): MangaFilter =
-            if (contentRating.isNotEmpty()) {
-                this
-            } else {
-                copy(
-                    contentRating = preferences.preferences.first().contentRatings
-                )
-            }
+            copy(
+                contentRating =
+                    if (contentRating.isEmpty()) {
+                        preferences.preferences.first().contentRatings
+                    } else {
+                        policy
+                            .allowed(
+                                contentRating
+                            )
+                    }
+            )
 
         private companion object {
             const val PAGE_SIZE = 30
             const val FEED_PAGE = 500
             const val POPULAR_SUGGESTIONS = 3
             const val CACHE_SIZE = 20
+            const val PREVIEW_CACHE_SIZE = 300
             const val CACHE_TTL_MILLIS = 5 * 60 * 1000L
         }
     }

@@ -1,0 +1,7 @@
+<resources>
+    <string name="tab_browse">Explorar</string>
+    <string name="tab_library">Biblioteca</string>
+    <string name="tab_updates">Novidades</string>
+    <string name="tab_settings">Definições</string>
+    <string name="placeholder_detail">Escolha um título para ver os detalhes.</string>
+</resources>

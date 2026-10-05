@@ -6,6 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,7 +41,12 @@ class MainActivity : ComponentActivity() {
             val request by open.collectAsStateWithLifecycle()
             M3MangaDexTheme {
                 CompositionLocalProvider(LocalCoverTheming provides themed) {
-                    M3MangaDexApp(open = request, onOpenHandle = { open.value = null })
+                    M3MangaDexApp(
+                        open = request,
+                        onOpenHandle = { open.value = null },
+                        // Test tags double as resource ids, for UiAutomator (the baseline profile generator).
+                        modifier = Modifier.semantics { testTagsAsResourceId = true },
+                    )
                 }
             }
         }

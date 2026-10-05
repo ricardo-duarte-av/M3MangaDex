@@ -1,0 +1,17 @@
+<resources>
+    <string name="login_title">Iniciar sessão na MangaDex</string>
+    <string name="login_why">A MangaDex ainda não permite que as apps usem um início de sessão normal. Em vez disso, cada conta cria o seu próprio “cliente de API pessoal” e inicia sessão com ele. Só precisa de o fazer uma vez.</string>
+    <string name="login_steps">1. Em mangadex.org, abra Settings → API Clients.\n2. Crie um cliente (qualquer nome). Alguns são aprovados de imediato; outros aguardam a equipa da MangaDex.\n3. Copie para aqui o ID e o segredo do cliente, com o seu nome de utilizador e palavra-passe.</string>
+    <string name="login_open_settings">Abrir as definições da MangaDex</string>
+    <string name="login_client_id">ID do cliente</string>
+    <string name="login_client_secret">Segredo do cliente</string>
+    <string name="login_username">Nome de utilizador</string>
+    <string name="login_password">Palavra-passe</string>
+    <string name="login_submit">Iniciar sessão</string>
+    <string name="login_expired">A sessão terminou. Introduza a palavra-passe para voltar a entrar.</string>
+    <string name="login_privacy">A palavra-passe é enviada apenas à MangaDex e nunca é guardada. A app guarda um token de sessão encriptado neste dispositivo.</string>
+    <string name="login_error_credentials">A MangaDex não aceitou esse nome de utilizador e palavra-passe. Se a conta é nova, confirme primeiro o email.</string>
+    <string name="login_error_client">O ID ou o segredo do cliente estão errados, ou o cliente ainda não foi aprovado (veja Settings → API Clients na MangaDex). Um cliente pessoal só funciona com a conta que o criou.</string>
+    <string name="login_error_attempts">Demasiadas tentativas. Aguarde um pouco e tente novamente.</string>
+    <string name="login_error_offline">Não foi possível contactar a MangaDex. Verifique a ligação.</string>
+</resources>

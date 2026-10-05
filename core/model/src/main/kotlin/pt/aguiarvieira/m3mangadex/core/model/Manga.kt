@@ -79,9 +79,6 @@ enum class ContentRating(
 
         /** What the app shows unless the user opts into more. */
         val Default = setOf(Safe, Suggestive)
-
-        /** What the user may opt into. Pornographic stays out of the Play build (policy). */
-        val Selectable = listOf(Safe, Suggestive, Erotica)
     }
 }
 

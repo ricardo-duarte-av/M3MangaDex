@@ -14,6 +14,7 @@ import pt.aguiarvieira.m3mangadex.core.auth.Session
 import pt.aguiarvieira.m3mangadex.core.data.LibraryRepository
 import pt.aguiarvieira.m3mangadex.core.data.notify.NewChaptersWorker
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
+import pt.aguiarvieira.m3mangadex.core.model.ContentPolicy
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.UserPreferences
 import javax.inject.Inject
@@ -26,7 +27,11 @@ class SettingsViewModel
         private val auth: AuthRepository,
         private val library: LibraryRepository,
         @param:ApplicationContext private val context: Context,
+        policy: ContentPolicy,
     ) : ViewModel() {
+        /** The ratings this build lets the user choose from. */
+        val selectableRatings: List<ContentRating> = policy.selectable
+
         fun setNewChapterNotifications(enabled: Boolean) {
             viewModelScope.launch { preferences.setNewChapterNotifications(enabled) }
         }

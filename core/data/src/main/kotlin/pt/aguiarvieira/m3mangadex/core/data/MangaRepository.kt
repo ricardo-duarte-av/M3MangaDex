@@ -25,6 +25,12 @@ interface MangaRepository {
         limit: Int,
     ): List<Manga>
 
+    /**
+     * A manga as a list last showed it (possibly without authors), or null: lets the details screen
+     * draw its header on the very first frame, so the tapped cover has somewhere to fly to.
+     */
+    fun preview(id: String): Manga?
+
     /** A manga, from a short-lived memory cache when the details screen or reader just loaded it. */
     suspend fun manga(id: String): Manga
 

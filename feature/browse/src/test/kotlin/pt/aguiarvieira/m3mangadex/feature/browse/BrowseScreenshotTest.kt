@@ -37,7 +37,7 @@ class BrowseScreenshotTest {
         compose.mainClock.autoAdvance = false
         compose.setContent {
             M3MangaDexTheme(darkTheme = false, dynamicColor = false) {
-                BrowseScreen(state, Suggestions.Idle, onQueryChange = {}, onRefresh = {}, onOpenManga = {}, onOpenSearch = { _, _ -> })
+                BrowseScreen(state, Suggestions.Idle, onQueryChange = {}, onRefresh = {}, onOpenManga = { _, _ -> }, onOpenSearch = { _, _ -> })
             }
         }
         compose.onRoot().captureRoboImage("src/test/screenshots/browse.png")

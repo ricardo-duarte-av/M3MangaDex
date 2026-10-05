@@ -233,7 +233,29 @@ Original plan:
   - The reader prefers local files.
 - A periodic worker checks for new chapters of followed or local-library manga and posts notifications grouped by manga.
 
-### M6 — Polish & release readiness
+### M6 — Polish & release readiness ✅ (v0.6.x)
+
+Done:
+- Content policy (the user's decision): `play` and `github` flavors. Play offers Safe and Suggestive;
+  the GitHub APK adds an Erotica opt-in. Pornographic is never offered. `ContentPolicy` clamps the
+  stored preferences, explicit search filters and library/feed requests, not just the UI. CI uploads
+  the `play` AAB and attaches `github` APKs to GitHub Releases.
+- Portuguese (pt-PT, also used on pt-BR devices) for every string. Lint's MissingTranslation keeps it complete.
+- Accessibility audit with UiAutomator dumps on every screen: all clickable elements labelled, and
+  targets ≥ 48 dp. At 200% font scale the navigation labels wrapped mid-word; they're now single-line.
+- Baseline profile: `:baselineprofile` (UiAutomator, by test tag) covers startup, Browse, a manga's
+  details, paging through the reader and back. Merged into main for both flavors.
+- Play listing material (`docs/play-listing/`): texts in en-US and pt-PT, a 512 px icon, a feature
+  graphic, IARC and data-safety guidance, and a privacy policy (`docs/privacy-policy.md`).
+- `screenshots.yml` workflow (from xmuks): formats, re-records goldens on a branch and starts CI.
+- Cover transitions (M3 container transform): a tapped cover in Browse, Search or Library grows into
+  the details header, and shrinks back on back (predictive back included). It uses `SharedTransitionLayout`
+  around `NavDisplay` with `sharedBounds` keyed by `cover:<list>:<mangaId>`, so only the tapped copy
+  flies. A preview cache of listed manga lets the details header draw on its first frame. On phones every
+  screen is its own scene (the list-detail strategy only applies from medium width), because inside one
+  list-detail scene nothing transitions.
+
+Original plan:
 - Baseline profile module and Roborazzi screenshot goldens, plus the `screenshots.yml` workflow from xmuks.
 - Accessibility pass (labels on long-press actions, as in slskd M3_PLAN A2), string resources, and pt-PT plus en.
 - Expressive component audit, as in slskd `M3_PLAN.md`.

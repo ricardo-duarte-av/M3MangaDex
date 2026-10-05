@@ -46,6 +46,7 @@ private val OriginalLanguages = listOf("ja", "ko", "zh", "en")
 @Composable
 internal fun FilterSheet(
     filter: MangaFilter,
+    selectableRatings: List<ContentRating>,
     tags: TagsState,
     onlyMyLanguages: Boolean,
     onFilterChange: ((MangaFilter) -> MangaFilter) -> Unit,
@@ -96,7 +97,7 @@ internal fun FilterSheet(
             }
             chipSection(
                 R.string.search_content_rating,
-                ContentRating.Selectable,
+                selectableRatings,
                 filter.contentRating,
                 { it.label }
             ) { rating ->

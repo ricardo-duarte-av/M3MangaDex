@@ -57,6 +57,7 @@ fun SettingsRoute(
     val session by viewModel.session.collectAsStateWithLifecycle()
     SettingsScreen(
         preferences = state,
+        selectableRatings = viewModel.selectableRatings,
         session = session,
         onLogin = onLogin,
         onLogout = viewModel::logout,
@@ -79,6 +80,7 @@ fun SettingsRoute(
 @Composable
 fun SettingsScreen(
     preferences: UserPreferences?,
+    selectableRatings: List<ContentRating>,
     session: Session,
     onLogin: () -> Unit,
     onLogout: () -> Unit,
@@ -154,7 +156,7 @@ fun SettingsScreen(
             item { Hint(R.string.settings_content_hint) }
             item {
                 Chips {
-                    ContentRating.Selectable.forEach { rating ->
+                    selectableRatings.forEach { rating ->
                         FilterChip(
                             selected = rating in preferences.contentRatings,
                             onClick = { onToggleRating(rating) },

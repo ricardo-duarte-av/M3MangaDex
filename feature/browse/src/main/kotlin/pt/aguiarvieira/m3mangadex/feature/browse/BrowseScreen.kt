@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -62,6 +63,8 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.component.Loading
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.MangaCard
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.MangaCover
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.SectionHeader
+import pt.aguiarvieira.m3mangadex.core.designsystem.component.SharedKeys
+import pt.aguiarvieira.m3mangadex.core.designsystem.component.sharedElement
 import pt.aguiarvieira.m3mangadex.core.model.Covers
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.coverUrl
@@ -73,7 +76,7 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.R as DsR
  */
 @Composable
 fun BrowseRoute(
-    onOpenManga: (String) -> Unit,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
     onOpenSearch: (query: String, section: BrowseSection?) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: BrowseViewModel = hiltViewModel(),
@@ -98,7 +101,7 @@ fun BrowseScreen(
     suggestions: Suggestions,
     onQueryChange: (String) -> Unit,
     onRefresh: () -> Unit,
-    onOpenManga: (String) -> Unit,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
     onOpenSearch: (query: String, section: BrowseSection?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -174,7 +177,7 @@ fun BrowseScreen(
         SuggestionList(
             suggestions = suggestions,
             languages = state.languages,
-            onOpenManga = { id -> collapseThen { onOpenManga(id) } },
+            onOpenManga = { id -> collapseThen { onOpenManga(id, SUGGESTIONS_SCOPE) } },
             onSearchAll = { query -> collapseThen { onOpenSearch(query, null) } },
         )
     }
@@ -217,7 +220,7 @@ private fun SearchInputField(
 @Composable
 private fun BrowseSections(
     state: BrowseUiState,
-    onOpenManga: (String) -> Unit,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
     onSeeAll: (BrowseSection) -> Unit,
     onRetry: () -> Unit,
     contentPadding: PaddingValues,
@@ -238,9 +241,9 @@ private fun BrowseSections(
 
                     is SectionState.Loaded -> {
                         if (section == BrowseSection.PopularNew) {
-                            HeroCarousel(sectionState.items, state.languages, onOpenManga)
+                            HeroCarousel(sectionState.items, state.languages, "browse:${section.name}", onOpenManga)
                         } else {
-                            MangaRow(sectionState.items, state.languages, onOpenManga)
+                            MangaRow(sectionState.items, state.languages, "browse:${section.name}", onOpenManga)
                         }
                     }
                 }
@@ -254,7 +257,8 @@ private fun BrowseSections(
 private fun HeroCarousel(
     items: List<Manga>,
     languages: List<String>,
-    onOpenManga: (String) -> Unit,
+    scope: String,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
 ) {
     HorizontalCenteredHeroCarousel(
         state = rememberCarouselState { items.size },
@@ -270,13 +274,18 @@ private fun HeroCarousel(
                 Modifier
                     .fillMaxSize()
                     .maskClip(MaterialTheme.shapes.extraLarge)
-                    .clickable { onOpenManga(manga.id) },
+                    .clickable { onOpenManga(manga.id, scope) }
+                    .testTag("hero-$index"),
         ) {
             AsyncImage(
                 model = manga.coverUrl(Covers.Size.Medium),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .sharedElement(SharedKeys.cover(manga.id, scope))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
             )
             // Scrim so the title stays legible on any cover; fades with the item as it narrows.
             Box(
@@ -310,7 +319,8 @@ private fun HeroCarousel(
 private fun MangaRow(
     items: List<Manga>,
     languages: List<String>,
-    onOpenManga: (String) -> Unit,
+    scope: String,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
 ) {
     HorizontalUncontainedCarousel(
         state = rememberCarouselState { items.size },
@@ -323,8 +333,9 @@ private fun MangaRow(
         MangaCard(
             title = manga.displayTitle(languages),
             coverUrl = manga.coverUrl(),
-            onClick = { onOpenManga(manga.id) },
+            onClick = { onOpenManga(manga.id, scope) },
             modifier = Modifier.width(CardWidth),
+            sharedKey = SharedKeys.cover(manga.id, scope),
         )
     }
 }
@@ -333,7 +344,7 @@ private fun MangaRow(
 private fun SuggestionList(
     suggestions: Suggestions,
     languages: List<String>,
-    onOpenManga: (String) -> Unit,
+    onOpenManga: (mangaId: String) -> Unit,
     onSearchAll: (String) -> Unit,
 ) {
     when (suggestions) {
@@ -399,6 +410,9 @@ private val BrowseSection.title: Int
             BrowseSection.MostFollowed -> R.string.browse_section_followed
             BrowseSection.TopRated -> R.string.browse_section_rated
         }
+
+/** Suggestions live in the search bar's own window; their covers can't fly out of it. */
+private const val SUGGESTIONS_SCOPE = "suggestions"
 
 private val HeroHeight = 320.dp
 private val CardWidth = 128.dp

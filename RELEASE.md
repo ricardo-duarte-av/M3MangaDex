@@ -22,6 +22,15 @@ Only `m3mangadex.versionName` in `gradle.properties` is edited. Play's versionCo
 from it as `major × 1,000,000 + minor × 1,000 + patch`, e.g. 0.3.12 → 3012 and 1.0.0 → 1000000,
 so it always increases with the version. Minor and patch must stay below 1000; the build fails otherwise.
 
+## Flavors
+
+- `play`: what goes to Google Play. Content ratings stop at *suggestive*, because Play bans sexually
+  explicit content.
+- `github`: the APK attached to GitHub Releases, for sideloading. Users can also opt into *erotica*.
+
+Both use the same application id and signing key, so a user can only have one installed. Pornographic
+content is never offered in either. Build locally with `:app:bundlePlayRelease` and `:app:assembleGithubRelease`.
+
 ## Cutting a release
 
 1. Bump `m3mangadex.versionName` in `gradle.properties`, then commit and push.

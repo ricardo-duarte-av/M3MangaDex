@@ -1,0 +1,9 @@
+<resources>
+    <string name="library_title">Biblioteca</string>
+    <string name="library_all">Tudo</string>
+    <string name="library_logged_out_title">A sua biblioteca MangaDex</string>
+    <string name="library_logged_out_body">Inicie sessão para ver as mangas que segue e acompanha, e manter a leitura sincronizada com a MangaDex.</string>
+    <string name="library_empty">Ainda está vazia. Adicione mangas à biblioteca a partir da página de detalhes.</string>
+    <string name="library_status_count">%1$s (%2$d)</string>
+    <string name="library_downloads">Transferências</string>
+</resources>

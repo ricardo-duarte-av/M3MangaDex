@@ -13,6 +13,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.M3MangaDexTheme
+import pt.aguiarvieira.m3mangadex.core.model.ContentPolicy
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaFilter
@@ -34,6 +35,7 @@ class SearchScreenshotTest {
                 SearchScreen(
                     query = rememberTextFieldState("solo"),
                     filter = MangaFilter(status = setOf(PublicationStatus.Completed)),
+                    selectableRatings = ContentPolicy.Play.selectable,
                     results = flowOf(PagingData.from(items)).collectAsLazyPagingItems(),
                     languages = listOf("en"),
                     tags = TagsState.Loading,
@@ -44,7 +46,7 @@ class SearchScreenshotTest {
                     onResetFilters = {},
                     onRetryTags = {},
                     onBack = {},
-                    onOpenManga = {},
+                    onOpenManga = { _, _ -> },
                 )
             }
         }

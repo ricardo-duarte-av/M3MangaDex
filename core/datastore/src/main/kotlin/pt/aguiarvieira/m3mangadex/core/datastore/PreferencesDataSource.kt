@@ -7,8 +7,15 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import pt.aguiarvieira.m3mangadex.core.model.ContentPolicy
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Languages
 import pt.aguiarvieira.m3mangadex.core.model.PageFit
@@ -23,6 +30,7 @@ class PreferencesDataSource
     @Inject
     constructor(
         private val dataStore: DataStore<Preferences>,
+        private val policy: ContentPolicy,
     ) {
         val preferences: Flow<UserPreferences> =
             dataStore.data.map { prefs ->
@@ -31,12 +39,14 @@ class PreferencesDataSource
                     chapterLanguages =
                         prefs[CHAPTER_LANGUAGES]?.split(',')?.filter(String::isNotBlank)?.takeIf { it.isNotEmpty() }
                             ?: Languages.defaults(Locale.getDefault()),
+                    // Limited to this build's policy, whatever was stored (say, by a sideloaded build).
                     contentRatings =
-                        prefs[CONTENT_RATINGS]
-                            ?.mapNotNull { value -> ContentRating.entries.firstOrNull { it.apiValue == value } }
-                            ?.toSet()
-                            ?.takeIf { it.isNotEmpty() }
-                            ?: ContentRating.Default,
+                        policy.allowed(
+                            prefs[CONTENT_RATINGS]
+                                ?.mapNotNull { value -> ContentRating.entries.firstOrNull { it.apiValue == value } }
+                                ?.toSet()
+                                .orEmpty(),
+                        ),
                     dataSaver = prefs[DATA_SAVER] ?: false,
                     volumeKeyPaging = prefs[VOLUME_KEY_PAGING] ?: false,
                     doublePageSpreads = prefs[DOUBLE_PAGE_SPREADS] ?: true,
@@ -46,6 +56,13 @@ class PreferencesDataSource
                     newChapterNotifications = prefs[NEW_CHAPTER_NOTIFICATIONS] ?: false,
                 )
             }
+
+        /**
+         * The latest preferences, readable without suspending (null only in the first instant after
+         * process start): for first frames that need them, like a details header's title.
+         */
+        val current: StateFlow<UserPreferences?> =
+            preferences.stateIn(CoroutineScope(SupervisorJob() + Dispatchers.Default), SharingStarted.Eagerly, null)
 
         /** Enables or disables new-chapter checks; enabling starts counting from now (no backlog flood). */
         suspend fun setNewChapterNotifications(enabled: Boolean) {

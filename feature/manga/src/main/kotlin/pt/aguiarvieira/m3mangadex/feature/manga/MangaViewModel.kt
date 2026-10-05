@@ -104,7 +104,20 @@ class MangaViewModel
         chapterLanguages: ChapterLanguages,
         preferences: PreferencesDataSource,
     ) : ViewModel() {
-        private val _state = MutableStateFlow<MangaUiState>(MangaUiState.Loading)
+        // Start from the list's copy when there is one: the header is there from the first frame.
+        private val _state =
+            MutableStateFlow(
+                repository.preview(mangaId)?.let { manga ->
+                    MangaUiState.Loaded(
+                        manga,
+                        null,
+                        ChaptersState.Loading,
+                        preferences.current.value
+                            ?.chapterLanguages
+                            .orEmpty()
+                    )
+                } ?: MangaUiState.Loading,
+            )
         val state: StateFlow<MangaUiState> = _state.asStateFlow()
 
         private val _account = MutableStateFlow(AccountState())

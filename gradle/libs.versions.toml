@@ -1,4 +1,8 @@
 [versions]
+# Baseline profile: generated on a device by :baselineprofile, shipped in the app.
+benchmark = "1.5.0"
+profileinstaller = "1.4.1"
+uiautomator = "2.4.0"
 # --- SDK ---
 compileSdk = "37"
 # Compose 1.13 alphas need the 37.1 platform (installed as platforms;android-37.1).
@@ -127,6 +131,9 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
 roborazzi-junit-rule = { group = "io.github.takahirom.roborazzi", name = "roborazzi-junit-rule", version.ref = "roborazzi" }
+androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
+androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark" }
+androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExt" }
 
 # Static analysis plugins (added to detekt's own classpath)
@@ -140,6 +147,8 @@ ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "symbol-processin
 roborazzi-gradlePlugin = { group = "io.github.takahirom.roborazzi", name = "roborazzi-gradle-plugin", version.ref = "roborazzi" }
 
 [plugins]
+android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
+baselineprofile = { id = "androidx.baselineprofile", version.ref = "benchmark" }
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

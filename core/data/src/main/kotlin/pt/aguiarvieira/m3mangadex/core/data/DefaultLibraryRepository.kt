@@ -28,6 +28,7 @@ internal class DefaultLibraryRepository
         private val userApi: MangaDexUserApi,
         private val api: MangaDexApi,
         private val preferences: PreferencesDataSource,
+        private val mangaRepository: DefaultMangaRepository,
     ) : LibraryRepository {
         private val _statuses = MutableStateFlow<Map<String, ReadingStatus>>(emptyMap())
         override val statuses: StateFlow<Map<String, ReadingStatus>> = _statuses.asStateFlow()
@@ -43,8 +44,11 @@ internal class DefaultLibraryRepository
             refreshStatuses()
             val statuses = _statuses.value
             val missing = statuses.keys.filter { mangaCache[it] == null }
-            api.mangaByIds(missing).forEach { mangaCache[it.id] = it }
-            return statuses.mapNotNull { (id, status) -> mangaCache[id]?.let { LibraryEntry(it, status) } }
+            // Only what the user's (and this build's) ratings allow, even for their own library.
+            api.mangaByIds(missing, preferences.preferences.first().contentRatings).forEach { mangaCache[it.id] = it }
+            return statuses
+                .mapNotNull { (id, status) -> mangaCache[id]?.let { LibraryEntry(it, status) } }
+                .also { entries -> mangaRepository.rememberPreviews(entries.map { it.manga }) }
         }
 
         override suspend fun setStatus(
@@ -98,7 +102,7 @@ internal class DefaultLibraryRepository
                             params.loadSize
                         )
                     val ids = page.items.mapNotNull { it.chapter.mangaId }.filter { mangaCache[it] == null }
-                    api.mangaByIds(ids).forEach { mangaCache[it.id] = it }
+                    api.mangaByIds(ids, prefs.contentRatings).forEach { mangaCache[it.id] = it }
                     val entries =
                         page.items.map { entry ->
                             entry.copy(

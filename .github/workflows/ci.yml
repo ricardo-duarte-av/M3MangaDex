@@ -51,11 +51,11 @@ jobs:
           restore-keys: robolectric-
 
       - name: Static analysis (ktlint, detekt, Android lint, warning-free compile)
-        run: ./gradlew spotlessCheck detekt lintDebug compileDebugKotlin $GRADLE_ARGS
+        run: ./gradlew spotlessCheck detekt lintDebug :app:lintPlayDebug compileDebugKotlin :app:compilePlayDebugKotlin :app:compileGithubDebugKotlin $GRADLE_ARGS
 
       # JVM only (Robolectric + Roborazzi): no emulator. Goldens are committed under src/test/screenshots.
       - name: Unit and screenshot tests
-        run: ./gradlew testDebugUnitTest verifyRoborazziDebug $GRADLE_ARGS
+        run: ./gradlew testDebugUnitTest :app:testPlayDebugUnitTest :core:model:test verifyRoborazziDebug $GRADLE_ARGS
 
       - name: Decode upload keystore (if configured)
         id: keystore
@@ -69,13 +69,14 @@ jobs:
             echo "::warning::No KEYSTORE_BASE64 secret — the release build will be unsigned."
           fi
 
-      - name: Assemble debug, release APK and AAB
+      # play: the Play bundle (safe + suggestive). github: the sideloadable APK (erotica opt-in).
+      - name: Assemble debug, release APKs and the Play AAB
         env:
           KEYSTORE_FILE: ${{ steps.keystore.outputs.file }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew :app:assembleDebug :app:assembleRelease :app:bundleRelease $GRADLE_ARGS
+        run: ./gradlew :app:assembleGithubDebug :app:assembleGithubRelease :app:bundlePlayRelease $GRADLE_ARGS
 
       - name: Upload reports
         if: ${{ !cancelled() }}
@@ -92,18 +93,18 @@ jobs:
         with:
           name: apks
           path: |
-            app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/github/debug/*.apk
+            app/build/outputs/apk/github/release/*.apk
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: aab
-          path: app/build/outputs/bundle/release/*.aab
+          path: app/build/outputs/bundle/playRelease/*.aab
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: mapping
-          path: app/build/outputs/mapping/release/mapping.txt
+          path: app/build/outputs/mapping/playRelease/mapping.txt
           if-no-files-found: warn
 
   verify-tag:

@@ -49,6 +49,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.ErrorMessage
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.Loading
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.MangaCard
+import pt.aguiarvieira.m3mangadex.core.designsystem.component.SharedKeys
+import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaFilter
 import pt.aguiarvieira.m3mangadex.core.model.MangaOrder
@@ -59,7 +61,7 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.R as DsR
 fun SearchRoute(
     args: SearchArgs,
     onBack: () -> Unit,
-    onOpenManga: (String) -> Unit,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel =
         hiltViewModel<SearchViewModel, SearchViewModel.Factory>(key = args.toString()) { it.create(args) },
@@ -74,6 +76,7 @@ fun SearchRoute(
     SearchScreen(
         query = query,
         filter = filter,
+        selectableRatings = viewModel.selectableRatings,
         results = results,
         languages = languages,
         tags = tags,
@@ -94,6 +97,7 @@ fun SearchRoute(
 fun SearchScreen(
     query: TextFieldState,
     filter: MangaFilter,
+    selectableRatings: List<ContentRating>,
     results: LazyPagingItems<Manga>,
     languages: List<String>,
     tags: TagsState,
@@ -104,7 +108,7 @@ fun SearchScreen(
     onResetFilters: () -> Unit,
     onRetryTags: () -> Unit,
     onBack: () -> Unit,
-    onOpenManga: (String) -> Unit,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showFilters by rememberSaveable { mutableStateOf(false) }
@@ -150,6 +154,7 @@ fun SearchScreen(
     if (showFilters) {
         FilterSheet(
             filter = filter,
+            selectableRatings = selectableRatings,
             tags = tags,
             onlyMyLanguages = onlyMyLanguages,
             onFilterChange = onFilterChange,
@@ -230,7 +235,7 @@ private fun SortMenu(
 private fun Results(
     results: LazyPagingItems<Manga>,
     languages: List<String>,
-    onOpenManga: (String) -> Unit,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
     contentPadding: PaddingValues,
 ) {
     val refresh = results.loadState.refresh
@@ -263,7 +268,7 @@ private fun Results(
 private fun ResultGrid(
     results: LazyPagingItems<Manga>,
     languages: List<String>,
-    onOpenManga: (String) -> Unit,
+    onOpenManga: (mangaId: String, coverScope: String) -> Unit,
     contentPadding: PaddingValues,
 ) {
     LazyVerticalGrid(
@@ -284,7 +289,8 @@ private fun ResultGrid(
                 MangaCard(
                     title = manga.displayTitle(languages),
                     coverUrl = manga.coverUrl(),
-                    onClick = { onOpenManga(manga.id) },
+                    onClick = { onOpenManga(manga.id, SEARCH_SCOPE) },
+                    sharedKey = SharedKeys.cover(manga.id, SEARCH_SCOPE),
                 )
             }
         }
@@ -317,3 +323,5 @@ internal val MangaOrder.label: Int
             MangaOrder.Year -> R.string.search_order_year
             MangaOrder.Title -> R.string.search_order_title
         }
+
+private const val SEARCH_SCOPE = "search"

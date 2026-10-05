@@ -2,6 +2,7 @@ package pt.aguiarvieira.m3mangadex.navigation
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
@@ -32,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
@@ -39,11 +42,15 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.SinglePaneSceneStrategy
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.navigation3.ui.NavDisplay
+import androidx.window.core.layout.WindowSizeClass
 import kotlinx.serialization.Serializable
 import pt.aguiarvieira.m3mangadex.BuildConfig
 import pt.aguiarvieira.m3mangadex.R
 import pt.aguiarvieira.m3mangadex.core.data.BrowseSection
+import pt.aguiarvieira.m3mangadex.core.designsystem.component.LocalAnimatedVisibilityScope
+import pt.aguiarvieira.m3mangadex.core.designsystem.component.LocalSharedTransitionScope
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.CoverHolder
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.CoverTheme
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.LocalCoverHolder
@@ -73,8 +80,10 @@ import pt.aguiarvieira.m3mangadex.feature.updates.UpdatesRoute
     val tagId: String? = null,
 ) : NavKey
 
+/** [coverScope]: the list the manga was opened from, whose cover grows into the details header. */
 @Serializable data class MangaKey(
     val mangaId: String,
+    val coverScope: String? = null,
 ) : NavKey
 
 @Serializable data object LoginKey : NavKey
@@ -121,6 +130,13 @@ fun M3MangaDexApp(
     val stacks =
         TopLevel.entries.associateWith { tab -> rememberNavBackStack(tab.key) }
     val listDetail = rememberListDetailSceneStrategy<NavKey>()
+    // Side by side only when there's room. On a phone every screen is its own scene, so moving
+    // between them animates as a scene change, which is what lets covers fly into the details
+    // (inside one list-detail scene nothing transitions, so nothing could fly).
+    val twoPane =
+        currentWindowAdaptiveInfoV2().windowSizeClass.isWidthAtLeastBreakpoint(
+            WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND
+        )
     val opened by rememberUpdatedState(onOpenHandle)
     LaunchedEffect(open) {
         if (open == null) return@LaunchedEffect
@@ -152,96 +168,139 @@ fun M3MangaDexApp(
                                 if (tab == current) stacks.getValue(tab).retainRoot() else current = tab
                             },
                             icon = { Icon(painterResource(tab.icon), contentDescription = null) },
-                            label = { Text(stringResource(tab.label)) },
+                            // One line even at large font sizes; wrapping split words mid-way.
+                            label = { Text(stringResource(tab.label), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         )
                     }
                 },
             ) {
                 val backStack = stacks.getValue(current)
-                NavDisplay(
-                    backStack = backStack,
-                    onBack = { backStack.removeLastOrNull() },
-                    entryDecorators =
-                        listOf(
-                            rememberSaveableStateHolderNavEntryDecorator(),
-                            rememberViewModelStoreNavEntryDecorator(),
-                        ),
-                    sceneStrategies = listOf(listDetail, SinglePaneSceneStrategy()),
-                    entryProvider =
-                        entryProvider {
-                            entry<BrowseKey>(metadata = listPane()) {
-                                BrowseRoute(
-                                    onOpenManga = backStack::openManga,
-                                    onOpenSearch = { query, section -> backStack.add(SearchKey(query, section?.name)) },
-                                )
-                            }
-                            entry<SearchKey>(metadata = listPane()) { key ->
-                                SearchRoute(
-                                    args = SearchArgs(key.query, key.section?.let(BrowseSection::valueOf), key.tagId),
-                                    onBack = { backStack.removeLastOrNull() },
-                                    onOpenManga = backStack::openManga,
-                                )
-                            }
-                            entry<MangaKey>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
-                                MangaRoute(
-                                    mangaId = key.mangaId,
-                                    onBack = { backStack.removeLastOrNull() },
-                                    onOpenTag = { backStack.add(SearchKey(tagId = it)) },
-                                    onReadChapter = { chapter -> backStack.add(ReaderKey(key.mangaId, chapter.id)) },
-                                )
-                            }
-                            entry<ReaderKey> { key ->
-                                ReaderRoute(
-                                    mangaId = key.mangaId,
-                                    chapterId = key.chapterId,
-                                    onBack = { backStack.removeLastOrNull() },
-                                    // Chapter to chapter replaces the reader, so back still leads to the details.
-                                    onOpenChapter = { chapterId ->
-                                        backStack[backStack.lastIndex] =
-                                            ReaderKey(key.mangaId, chapterId)
-                                    },
-                                )
-                            }
-                            entry<LibraryKey>(metadata = listPane()) {
-                                LibraryRoute(
-                                    onOpenManga = backStack::openManga,
-                                    onLogin = { backStack.add(LoginKey) },
-                                    onOpenDownloads = { backStack.add(DownloadsKey) },
-                                )
-                            }
-                            entry<UpdatesKey> {
-                                UpdatesRoute(
-                                    onReadChapter = {
-                                        mangaId,
-                                        chapterId,
-                                        ->
-                                        backStack.add(ReaderKey(mangaId, chapterId))
-                                    },
-                                    onLogin = { backStack.add(LoginKey) },
-                                )
-                            }
-                            entry<SettingsKey> {
-                                SettingsRoute(
-                                    versionName = BuildConfig.VERSION_NAME,
-                                    onLogin = { backStack.add(LoginKey) },
-                                    onOpenDownloads = { backStack.add(DownloadsKey) },
-                                    debugTools = BuildConfig.DEBUG,
-                                )
-                            }
-                            entry<DownloadsKey> {
-                                DownloadsRoute(
-                                    onBack = { backStack.removeLastOrNull() },
-                                    onRead = { mangaId, chapterId -> backStack.add(ReaderKey(mangaId, chapterId)) },
-                                )
-                            }
-                            entry<LoginKey> {
-                                LoginRoute(
-                                    onBack = { backStack.removeLastOrNull() },
-                                    onLoggedIn = { backStack.remove(LoginKey) },
-                                )
-                            }
-                        },
-                )
+                // Covers fly between a list and the details (and back, predictive back included).
+                SharedTransitionLayout {
+                    CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                        NavDisplay(
+                            // No sharedTransitionScope here: Navigation 3 would then animate whole entries as shared
+                            // elements, and Browse (in both the list-only and the list-detail scene) would never exit,
+                            // so the covers would have nothing to fly from.
+                            backStack = backStack,
+                            onBack = { backStack.removeLastOrNull() },
+                            entryDecorators =
+                                listOf(
+                                    rememberSaveableStateHolderNavEntryDecorator(),
+                                    rememberViewModelStoreNavEntryDecorator(),
+                                ),
+                            sceneStrategies =
+                                if (twoPane) {
+                                    listOf(
+                                        listDetail,
+                                        SinglePaneSceneStrategy()
+                                    )
+                                } else {
+                                    listOf(SinglePaneSceneStrategy())
+                                },
+                            entryProvider =
+                                entryProvider {
+                                    entry<BrowseKey>(metadata = listPane()) {
+                                        Destination {
+                                            BrowseRoute(
+                                                onOpenManga = backStack::openManga,
+                                                onOpenSearch = {
+                                                    query,
+                                                    section,
+                                                    ->
+                                                    backStack.add(SearchKey(query, section?.name))
+                                                },
+                                            )
+                                        }
+                                    }
+                                    entry<SearchKey>(metadata = listPane()) { key ->
+                                        Destination {
+                                            SearchRoute(
+                                                args =
+                                                    SearchArgs(
+                                                        key.query,
+                                                        key.section?.let(BrowseSection::valueOf),
+                                                        key.tagId
+                                                    ),
+                                                onBack = { backStack.removeLastOrNull() },
+                                                onOpenManga = backStack::openManga,
+                                            )
+                                        }
+                                    }
+                                    entry<MangaKey>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
+                                        Destination {
+                                            MangaRoute(
+                                                mangaId = key.mangaId,
+                                                coverScope = key.coverScope,
+                                                onBack = { backStack.removeLastOrNull() },
+                                                onOpenTag = { backStack.add(SearchKey(tagId = it)) },
+                                                onReadChapter = { chapter ->
+                                                    backStack.add(ReaderKey(key.mangaId, chapter.id))
+                                                },
+                                            )
+                                        }
+                                    }
+                                    entry<ReaderKey> { key ->
+                                        ReaderRoute(
+                                            mangaId = key.mangaId,
+                                            chapterId = key.chapterId,
+                                            onBack = { backStack.removeLastOrNull() },
+                                            // Chapter to chapter replaces the reader: back still leads to the details.
+                                            onOpenChapter = { chapterId ->
+                                                backStack[backStack.lastIndex] =
+                                                    ReaderKey(key.mangaId, chapterId)
+                                            },
+                                        )
+                                    }
+                                    entry<LibraryKey>(metadata = listPane()) {
+                                        Destination {
+                                            LibraryRoute(
+                                                onOpenManga = backStack::openManga,
+                                                onLogin = { backStack.add(LoginKey) },
+                                                onOpenDownloads = { backStack.add(DownloadsKey) },
+                                            )
+                                        }
+                                    }
+                                    entry<UpdatesKey> {
+                                        UpdatesRoute(
+                                            onReadChapter = {
+                                                mangaId,
+                                                chapterId,
+                                                ->
+                                                backStack.add(ReaderKey(mangaId, chapterId))
+                                            },
+                                            onLogin = { backStack.add(LoginKey) },
+                                        )
+                                    }
+                                    entry<SettingsKey> {
+                                        SettingsRoute(
+                                            versionName = BuildConfig.VERSION_NAME,
+                                            onLogin = { backStack.add(LoginKey) },
+                                            onOpenDownloads = { backStack.add(DownloadsKey) },
+                                            debugTools = BuildConfig.DEBUG,
+                                        )
+                                    }
+                                    entry<DownloadsKey> {
+                                        DownloadsRoute(
+                                            onBack = { backStack.removeLastOrNull() },
+                                            onRead = {
+                                                mangaId,
+                                                chapterId,
+                                                ->
+                                                backStack.add(ReaderKey(mangaId, chapterId))
+                                            },
+                                        )
+                                    }
+                                    entry<LoginKey> {
+                                        LoginRoute(
+                                            onBack = { backStack.removeLastOrNull() },
+                                            onLoggedIn = { backStack.remove(LoginKey) },
+                                        )
+                                    }
+                                },
+                        )
+                    }
+                }
             }
         }
     }
@@ -251,13 +310,24 @@ fun M3MangaDexApp(
  * Opens a manga. If one is already open on top (beside the list on a large screen) it is replaced
  * rather than stacked, so back returns to the list instead of walking through every title tapped.
  */
-private fun MutableList<NavKey>.openManga(mangaId: String) {
-    val key = MangaKey(mangaId)
-    when (lastOrNull()) {
-        key -> Unit
-        is MangaKey -> set(lastIndex, key)
+private fun MutableList<NavKey>.openManga(
+    mangaId: String,
+    coverScope: String,
+) {
+    val key = MangaKey(mangaId, coverScope)
+    when (val top = lastOrNull()) {
+        is MangaKey -> if (top.mangaId != mangaId) set(lastIndex, key)
         else -> add(key)
     }
+}
+
+/** Gives a destination's covers the navigation's animation, for shared-element transitions. */
+@Composable
+private fun Destination(content: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalAnimatedVisibilityScope provides LocalNavAnimatedContentScope.current,
+        content = content,
+    )
 }
 
 private fun MutableList<NavKey>.retainRoot() {

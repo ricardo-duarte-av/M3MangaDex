@@ -106,15 +106,17 @@ class MangaDexApi(
         ).data.map { it.toModel() }
 
     /** Several manga by id (library, feed covers), in pages of at most [IDS_PER_REQUEST]. */
-    suspend fun mangaByIds(ids: Collection<String>): List<Manga> =
+    suspend fun mangaByIds(
+        ids: Collection<String>,
+        contentRating: Collection<ContentRating>,
+    ): List<Manga> =
         ids.distinct().chunked(IDS_PER_REQUEST).flatMap { chunk ->
             val url =
                 url("manga") {
                     addQueryParameter("limit", chunk.size.toString())
                     array("ids", chunk)
                     array("includes", listOf("cover_art"))
-                    // The user already chose these; show them whatever their rating.
-                    array("contentRating", ContentRating.entries.map { it.apiValue })
+                    array("contentRating", contentRating.map { it.apiValue })
                 }
             get(url, CollectionDto.serializer(MangaDto.serializer())).data.map { it.toModel() }
         }

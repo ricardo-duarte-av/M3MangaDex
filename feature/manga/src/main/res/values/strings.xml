@@ -31,7 +31,6 @@
     <string name="manga_oneshot">Oneshot</string>
     <string name="manga_no_group">No group</string>
     <string name="manga_external">Hosted on the publisher’s site</string>
-    <string name="manga_reader_coming">The reader arrives in version 0.2.</string>
     <string name="manga_follows">%1$s follows</string>
     <string name="manga_status_ongoing">Ongoing</string>
     <string name="manga_status_completed">Completed</string>
