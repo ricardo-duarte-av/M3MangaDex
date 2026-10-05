@@ -11,6 +11,8 @@ dependencies {
     api(projects.core.model)
     api(projects.core.datastore)
     api(libs.androidx.paging.common)
+    // api: Hilt's generated component in :app has to see the database types this module provides.
+    api(projects.core.database)
     implementation(projects.core.network)
     implementation(libs.kotlinx.coroutines.core)
 

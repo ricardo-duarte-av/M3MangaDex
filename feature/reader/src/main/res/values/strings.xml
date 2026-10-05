@@ -1,0 +1,23 @@
+<resources>
+    <string name="reader_page">Page %1$d</string>
+    <string name="reader_page_of">%1$d / %2$d</string>
+    <string name="reader_chapter">Ch. %1$s</string>
+    <string name="reader_oneshot">Oneshot</string>
+    <string name="reader_previous_chapter">Previous chapter</string>
+    <string name="reader_next_chapter">Next chapter</string>
+    <string name="reader_options">Reader options</string>
+    <string name="reader_mode_ltr">Left to right</string>
+    <string name="reader_mode_rtl">Right to left</string>
+    <string name="reader_mode_vertical">Vertical</string>
+    <string name="reader_mode_webtoon">Webtoon (long strip)</string>
+    <string name="reader_spreads">Two-page spreads on wide screens</string>
+    <string name="reader_volume_keys">Volume keys turn pages</string>
+    <string name="reader_failed">Couldn’t load this chapter.</string>
+    <string name="reader_page_failed">Page %1$d didn’t load.</string>
+    <string name="reader_end_title">End of %1$s</string>
+    <string name="reader_up_to_date">You’re up to date. There’s no next chapter in your languages yet.</string>
+    <string name="reader_next">Next: %1$s</string>
+    <string name="reader_next_external">Next: %1$s (on the publisher’s site)</string>
+    <string name="reader_back_to_details">Back to details</string>
+    <string name="reader_credit">Translated by %1$s</string>
+</resources>

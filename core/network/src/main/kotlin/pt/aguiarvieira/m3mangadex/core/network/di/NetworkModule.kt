@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
+import pt.aguiarvieira.m3mangadex.core.network.AtHomeReportInterceptor
 import pt.aguiarvieira.m3mangadex.core.network.MangaDexApi
 import pt.aguiarvieira.m3mangadex.core.network.RateLimitInterceptor
 import pt.aguiarvieira.m3mangadex.core.network.RateLimiter
@@ -74,7 +75,10 @@ object NetworkModule {
     @Provides
     @Singleton
     @ImageClient
-    fun imageClient(base: OkHttpClient): OkHttpClient = base
+    fun imageClient(
+        base: OkHttpClient,
+        json: Json,
+    ): OkHttpClient = base.newBuilder().addInterceptor(AtHomeReportInterceptor(reporter = base, json = json)).build()
 
     @Provides
     @Singleton

@@ -11,6 +11,7 @@ import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.M3MangaDexTheme
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
+import pt.aguiarvieira.m3mangadex.core.model.ChapterProgress
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaStats
@@ -18,6 +19,7 @@ import pt.aguiarvieira.m3mangadex.core.model.PublicationStatus
 import pt.aguiarvieira.m3mangadex.core.model.ScanlationGroup
 import pt.aguiarvieira.m3mangadex.core.model.Tag
 import pt.aguiarvieira.m3mangadex.core.model.TagGroup
+import java.time.Instant
 
 @RunWith(AndroidJUnit4::class)
 @Config(qualifiers = "w411dp-h891dp-xxhdpi")
@@ -38,13 +40,20 @@ class MangaScreenshotTest {
             MangaUiState.Loaded(
                 manga = sampleManga(),
                 stats = MangaStats(follows = 320_541, rating = 9.33),
-                chapters = ChaptersState.Loaded(groupByVolume(chapters), chapters.size, firstReadable(chapters)),
+                chapters = ChaptersState.Loaded(groupByVolume(chapters), chapters),
                 languages = listOf("en"),
             )
+        // Chapter 1 finished, chapter 12 half-way: the button continues it.
+        val progress =
+            mapOf(
+                "c1" to ChapterProgress("c1", "m1", "1", page = 24, pageCount = 25, readAt = Instant.EPOCH),
+                "c3" to ChapterProgress("c3", "m1", "12", page = 9, pageCount = 30, readAt = Instant.EPOCH),
+            )
+        val reading = ReadingState(progress, resume = chapters[0], started = true)
         compose.mainClock.autoAdvance = false
         compose.setContent {
             M3MangaDexTheme(darkTheme = true, dynamicColor = false) {
-                MangaScreen(state, SnackbarHostState(), onBack = {}, onRetry = {}, onOpenTag = {}, onOpenChapter = {})
+                MangaScreen(state, SnackbarHostState(), onBack = {}, onRetry = {}, onOpenTag = {}, onOpenChapter = {}, reading = reading)
             }
         }
         compose.onRoot().captureRoboImage("src/test/screenshots/manga_loaded.png")

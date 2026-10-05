@@ -36,8 +36,18 @@ class PreferencesDataSource
                             ?.takeIf { it.isNotEmpty() }
                             ?: ContentRating.Default,
                     dataSaver = prefs[DATA_SAVER] ?: false,
+                    volumeKeyPaging = prefs[VOLUME_KEY_PAGING] ?: false,
+                    doublePageSpreads = prefs[DOUBLE_PAGE_SPREADS] ?: true,
                 )
             }
+
+        suspend fun setVolumeKeyPaging(enabled: Boolean) {
+            dataStore.edit { it[VOLUME_KEY_PAGING] = enabled }
+        }
+
+        suspend fun setDoublePageSpreads(enabled: Boolean) {
+            dataStore.edit { it[DOUBLE_PAGE_SPREADS] = enabled }
+        }
 
         suspend fun setChapterLanguages(languages: List<String>) {
             dataStore.edit { it[CHAPTER_LANGUAGES] = languages.joinToString(",") }
@@ -55,5 +65,7 @@ class PreferencesDataSource
             val CHAPTER_LANGUAGES = stringPreferencesKey("chapter_languages")
             val CONTENT_RATINGS = stringSetPreferencesKey("content_ratings")
             val DATA_SAVER = booleanPreferencesKey("data_saver")
+            val VOLUME_KEY_PAGING = booleanPreferencesKey("volume_key_paging")
+            val DOUBLE_PAGE_SPREADS = booleanPreferencesKey("double_page_spreads")
         }
     }

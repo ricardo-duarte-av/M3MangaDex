@@ -17,7 +17,9 @@ import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -41,6 +43,7 @@ import pt.aguiarvieira.m3mangadex.R
 import pt.aguiarvieira.m3mangadex.core.data.BrowseSection
 import pt.aguiarvieira.m3mangadex.feature.browse.BrowseRoute
 import pt.aguiarvieira.m3mangadex.feature.manga.MangaRoute
+import pt.aguiarvieira.m3mangadex.feature.reader.ReaderRoute
 import pt.aguiarvieira.m3mangadex.feature.search.SearchArgs
 import pt.aguiarvieira.m3mangadex.feature.search.SearchRoute
 import pt.aguiarvieira.m3mangadex.feature.settings.SettingsRoute
@@ -62,6 +65,12 @@ import pt.aguiarvieira.m3mangadex.feature.settings.SettingsRoute
 
 @Serializable data class MangaKey(
     val mangaId: String,
+) : NavKey
+
+/** Full screen, over everything: the navigation bar hides while it's on top. */
+@Serializable data class ReaderKey(
+    val mangaId: String,
+    val chapterId: String,
 ) : NavKey
 
 /** The top-level destinations, one per navigation-suite item, each with its own back stack. */
@@ -88,9 +97,13 @@ fun M3MangaDexApp(modifier: Modifier = Modifier) {
     val stacks =
         TopLevel.entries.associateWith { tab -> rememberNavBackStack(tab.key) }
     val listDetail = rememberListDetailSceneStrategy<NavKey>()
+    val suiteState = rememberNavigationSuiteScaffoldState()
+    val reading = stacks.getValue(current).lastOrNull() is ReaderKey
+    LaunchedEffect(reading) { if (reading) suiteState.hide() else suiteState.show() }
 
     NavigationSuiteScaffold(
         modifier = modifier,
+        state = suiteState,
         navigationSuiteItems = {
             TopLevel.entries.forEach { tab ->
                 item(
@@ -135,6 +148,19 @@ fun M3MangaDexApp(modifier: Modifier = Modifier) {
                             mangaId = key.mangaId,
                             onBack = { backStack.removeLastOrNull() },
                             onOpenTag = { backStack.add(SearchKey(tagId = it)) },
+                            onReadChapter = { chapter -> backStack.add(ReaderKey(key.mangaId, chapter.id)) },
+                        )
+                    }
+                    entry<ReaderKey> { key ->
+                        ReaderRoute(
+                            mangaId = key.mangaId,
+                            chapterId = key.chapterId,
+                            onBack = { backStack.removeLastOrNull() },
+                            // Chapter to chapter replaces the reader, so back still leads to the details.
+                            onOpenChapter = { chapterId ->
+                                backStack[backStack.lastIndex] =
+                                    ReaderKey(key.mangaId, chapterId)
+                            },
                         )
                     }
                     entry<LibraryKey>(metadata = listPane()) {

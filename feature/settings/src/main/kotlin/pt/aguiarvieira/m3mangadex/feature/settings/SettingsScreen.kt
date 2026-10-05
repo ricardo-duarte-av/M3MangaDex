@@ -49,6 +49,8 @@ fun SettingsRoute(
         onToggleLanguage = viewModel::toggleLanguage,
         onToggleRating = viewModel::toggleRating,
         onDataSaverChange = viewModel::setDataSaver,
+        onSpreadsChange = viewModel::setDoublePageSpreads,
+        onVolumeKeysChange = viewModel::setVolumeKeyPaging,
         modifier = modifier,
     )
 }
@@ -61,6 +63,8 @@ fun SettingsScreen(
     onToggleLanguage: (String) -> Unit,
     onToggleRating: (ContentRating) -> Unit,
     onDataSaverChange: (Boolean) -> Unit,
+    onSpreadsChange: (Boolean) -> Unit,
+    onVolumeKeysChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -118,6 +122,19 @@ fun SettingsScreen(
                     supportingContent = { Text(stringResource(R.string.settings_data_saver_hint)) },
                     trailingContent = { Switch(checked = preferences.dataSaver, onCheckedChange = null) },
                 ) { Text(stringResource(R.string.settings_data_saver)) }
+            }
+            item {
+                ListItem(
+                    onClick = { onSpreadsChange(!preferences.doublePageSpreads) },
+                    supportingContent = { Text(stringResource(R.string.settings_spreads_hint)) },
+                    trailingContent = { Switch(checked = preferences.doublePageSpreads, onCheckedChange = null) },
+                ) { Text(stringResource(R.string.settings_spreads)) }
+            }
+            item {
+                ListItem(
+                    onClick = { onVolumeKeysChange(!preferences.volumeKeyPaging) },
+                    trailingContent = { Switch(checked = preferences.volumeKeyPaging, onCheckedChange = null) },
+                ) { Text(stringResource(R.string.settings_volume_keys)) }
             }
             item { Heading(R.string.settings_about) }
             item {

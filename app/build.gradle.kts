@@ -86,6 +86,7 @@ dependencies {
     implementation(projects.feature.browse)
     implementation(projects.feature.search)
     implementation(projects.feature.manga)
+    implementation(projects.feature.reader)
     implementation(projects.feature.settings)
 
     implementation(libs.androidx.core.ktx)

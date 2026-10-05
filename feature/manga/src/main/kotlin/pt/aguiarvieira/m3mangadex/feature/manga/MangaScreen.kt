@@ -64,6 +64,7 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.component.ErrorMessage
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.Loading
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.MangaCover
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
+import pt.aguiarvieira.m3mangadex.core.model.ChapterProgress
 import pt.aguiarvieira.m3mangadex.core.model.Covers
 import pt.aguiarvieira.m3mangadex.core.model.Descriptions
 import pt.aguiarvieira.m3mangadex.core.model.Languages
@@ -88,12 +89,14 @@ fun MangaRoute(
         hiltViewModel<MangaViewModel, MangaViewModel.Factory>(key = "manga:$mangaId") { it.create(mangaId) },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val reading by viewModel.reading.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val readerComing = stringResource(R.string.manga_reader_coming)
     MangaScreen(
         state = state,
+        reading = reading,
         snackbar = snackbar,
         onBack = onBack,
         onRetry = viewModel::retry,
@@ -134,6 +137,7 @@ fun MangaScreen(
     onOpenTag: (String) -> Unit,
     onOpenChapter: (Chapter) -> Unit,
     modifier: Modifier = Modifier,
+    reading: ReadingState = ReadingState(),
 ) {
     Scaffold(
         modifier = modifier,
@@ -177,16 +181,25 @@ fun MangaScreen(
                 ) {
                     item(key = "header") { Header(state.manga, state.stats, state.languages) }
                     item(key = "actions") {
-                        val first = (state.chapters as? ChaptersState.Loaded)?.first
+                        val resume = reading.resume
                         Button(
-                            onClick = { first?.let(onOpenChapter) },
-                            enabled = first != null,
+                            onClick = { resume?.let(onOpenChapter) },
+                            enabled = resume != null,
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        ) { Text(stringResource(R.string.manga_read)) }
+                        ) {
+                            val number = resume?.number
+                            Text(
+                                if (reading.started && number != null) {
+                                    stringResource(R.string.manga_continue, number)
+                                } else {
+                                    stringResource(R.string.manga_read)
+                                },
+                            )
+                        }
                     }
                     item(key = "description") { Description(state.manga.displayDescription(state.languages)) }
                     item(key = "tags") { Tags(state.manga, onOpenTag) }
-                    chapters(state.chapters, state.languages, onOpenChapter, onRetry)
+                    chapters(state.chapters, state.languages, reading.progress, onOpenChapter, onRetry)
                 }
             }
         }
@@ -312,6 +325,7 @@ private fun Tags(
 private fun LazyListScope.chapters(
     state: ChaptersState,
     languages: List<String>,
+    progress: Map<String, ChapterProgress>,
     onOpenChapter: (Chapter) -> Unit,
     onRetry: () -> Unit,
 ) {
@@ -365,16 +379,23 @@ private fun LazyListScope.chapters(
                     }
                 }
                 items(group.chapters, key = { "chapter-${it.id}" }) { chapter ->
-                    ChapterRow(chapter, showLanguage = languages.size > 1, onClick = { onOpenChapter(chapter) })
+                    ChapterRow(
+                        chapter = chapter,
+                        progress = progress[chapter.id],
+                        showLanguage = languages.size > 1,
+                        onClick = { onOpenChapter(chapter) },
+                    )
                 }
             }
         }
     }
 }
 
+/** Read chapters fade back; one left half-way says where. */
 @Composable
 private fun ChapterRow(
     chapter: Chapter,
+    progress: ChapterProgress?,
     showLanguage: Boolean,
     onClick: () -> Unit,
 ) {
@@ -397,9 +418,13 @@ private fun ChapterRow(
             groups,
             whenText,
             stringResource(R.string.manga_external).takeIf { chapter.isExternal },
+            progress
+                ?.takeUnless { it.isRead }
+                ?.let { stringResource(R.string.manga_page_progress, it.page + 1, it.pageCount) },
         ).joinToString(" · ")
     ListItem(
         onClick = onClick,
+        modifier = Modifier.alpha(if (progress?.isRead == true) READ_ALPHA else 1f),
         supportingContent = { Text(supporting, maxLines = 2, overflow = TextOverflow.Ellipsis) },
         trailingContent =
             if (chapter.isExternal) {
@@ -420,3 +445,4 @@ private val PublicationStatus.label: Int
         }
 
 private const val COLLAPSED_LINES = 4
+private const val READ_ALPHA = 0.5f

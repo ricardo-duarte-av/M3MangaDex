@@ -13,6 +13,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import pt.aguiarvieira.m3mangadex.core.model.AtHomeServer
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Manga
@@ -21,6 +22,7 @@ import pt.aguiarvieira.m3mangadex.core.model.MangaOrder
 import pt.aguiarvieira.m3mangadex.core.model.MangaStats
 import pt.aguiarvieira.m3mangadex.core.model.Page
 import pt.aguiarvieira.m3mangadex.core.model.Tag
+import pt.aguiarvieira.m3mangadex.core.network.dto.AtHomeDto
 import pt.aguiarvieira.m3mangadex.core.network.dto.ChapterDto
 import pt.aguiarvieira.m3mangadex.core.network.dto.CollectionDto
 import pt.aguiarvieira.m3mangadex.core.network.dto.EntityDto
@@ -111,6 +113,17 @@ class MangaDexApi(
             },
             CollectionDto.serializer(TagDto.serializer())
         ).data.map { it.toModel() }
+
+    suspend fun chapter(id: String): Chapter {
+        val url = url("chapter/$id") { array("includes", listOf("scanlation_group")) }
+        return get(url, EntityDto.serializer(ChapterDto.serializer())).data.toModel()
+    }
+
+    /** Where to fetch [chapterId]'s pages from, for the next ~15 minutes. */
+    suspend fun atHomeServer(chapterId: String): AtHomeServer {
+        val dto = get(url("at-home/server/$chapterId") {}, AtHomeDto.serializer())
+        return AtHomeServer(dto.baseUrl, dto.chapter.hash, dto.chapter.data, dto.chapter.dataSaver)
+    }
 
     suspend fun statistics(mangaIds: Collection<String>): Map<String, MangaStats> {
         val url = url("statistics/manga") { array("manga", mangaIds) }

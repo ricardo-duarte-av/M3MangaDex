@@ -38,6 +38,14 @@ class SettingsViewModel
             viewModelScope.launch { preferences.setDataSaver(enabled) }
         }
 
+        fun setDoublePageSpreads(enabled: Boolean) {
+            viewModelScope.launch { preferences.setDoublePageSpreads(enabled) }
+        }
+
+        fun setVolumeKeyPaging(enabled: Boolean) {
+            viewModelScope.launch { preferences.setVolumeKeyPaging(enabled) }
+        }
+
         private companion object {
             const val STOP_TIMEOUT_MILLIS = 5_000L
         }

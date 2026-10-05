@@ -10,25 +10,32 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import pt.aguiarvieira.m3mangadex.core.data.MangaRepository
+import pt.aguiarvieira.m3mangadex.core.data.ReadingRepository
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
+import pt.aguiarvieira.m3mangadex.core.model.ChapterProgress
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaStats
+import pt.aguiarvieira.m3mangadex.core.model.neighbors
 
 sealed interface ChaptersState {
     data object Loading : ChaptersState
 
     data class Loaded(
         val volumes: List<VolumeGroup>,
-        val count: Int,
-        val first: Chapter?,
-    ) : ChaptersState
+        val all: List<Chapter>,
+    ) : ChaptersState {
+        val count: Int get() = all.size
+    }
 
     data object Failed : ChaptersState
 }
@@ -46,16 +53,32 @@ sealed interface MangaUiState {
     ) : MangaUiState
 }
 
+/** Where the user is in this manga: per-chapter progress and what the main button opens. */
+data class ReadingState(
+    val progress: Map<String, ChapterProgress> = emptyMap(),
+    /** The chapter "Start/Continue reading" opens. */
+    val resume: Chapter? = null,
+    /** True once anything of this manga was read: the button says "Continue". */
+    val started: Boolean = false,
+)
+
 @HiltViewModel(assistedFactory = MangaViewModel.Factory::class)
 class MangaViewModel
     @AssistedInject
     constructor(
         @Assisted private val mangaId: String,
         private val repository: MangaRepository,
+        reading: ReadingRepository,
         preferences: PreferencesDataSource,
     ) : ViewModel() {
         private val _state = MutableStateFlow<MangaUiState>(MangaUiState.Loading)
         val state: StateFlow<MangaUiState> = _state.asStateFlow()
+
+        val reading: StateFlow<ReadingState> =
+            combine(_state, reading.progress(mangaId), reading.lastRead(mangaId)) { state, progress, last ->
+                val chapters = ((state as? MangaUiState.Loaded)?.chapters as? ChaptersState.Loaded)?.all.orEmpty()
+                ReadingState(progress, resumeChapter(chapters, last), started = last != null)
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ReadingState())
 
         private var loading: Job? = null
         private var languages: List<String>? = null
@@ -88,9 +111,8 @@ class MangaViewModel
                     _state.value = MangaUiState.Loaded(manga, null, ChaptersState.Loading, languages)
                     val loadedStats = stats.await()
                     val chapterState =
-                        chapters.await()?.getOrNull()?.let { list ->
-                            ChaptersState.Loaded(groupByVolume(list), list.size, firstReadable(list))
-                        } ?: ChaptersState.Failed
+                        chapters.await()?.getOrNull()?.let { list -> ChaptersState.Loaded(groupByVolume(list), list) }
+                            ?: ChaptersState.Failed
                     _state.value = MangaUiState.Loaded(manga, loadedStats, chapterState, languages)
                 }
         }
@@ -110,4 +132,24 @@ class MangaViewModel
         interface Factory {
             fun create(mangaId: String): MangaViewModel
         }
+
+        private companion object {
+            const val STOP_TIMEOUT_MILLIS = 5_000L
+        }
     }
+
+/**
+ * Nothing read yet: the first chapter. Otherwise the last one opened, or the one after it if it
+ * was finished (staying on it when it's the latest there is).
+ */
+internal fun resumeChapter(
+    chapters: List<Chapter>,
+    last: ChapterProgress?,
+): Chapter? {
+    val lastChapter = last?.let { progress -> chapters.firstOrNull { it.id == progress.chapterId } }
+    return when {
+        lastChapter == null -> firstReadable(chapters)
+        last.isRead -> neighbors(chapters, lastChapter).next ?: lastChapter
+        else -> lastChapter
+    }
+}

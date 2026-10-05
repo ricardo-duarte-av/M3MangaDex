@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
+import pt.aguiarvieira.m3mangadex.core.model.AtHomeServer
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Manga
@@ -30,6 +31,9 @@ internal class DefaultMangaRepository
     ) : MangaRepository {
         private val tagsLock = Mutex()
         private var tags: List<Tag>? = null
+        private val mangaCache = ExpiringCache<String, Manga>(CACHE_SIZE, CACHE_TTL_MILLIS)
+        private val chapterCache =
+            ExpiringCache<Pair<String, List<String>>, List<Chapter>>(CACHE_SIZE, CACHE_TTL_MILLIS)
 
         override suspend fun section(
             section: BrowseSection,
@@ -61,11 +65,20 @@ internal class DefaultMangaRepository
                 (popular.await() + relevant.await()).distinctBy { it.id }.take(limit)
             }
 
-        override suspend fun manga(id: String): Manga = api.manga(id)
+        override suspend fun manga(id: String): Manga = mangaCache.getOrPut(id) { api.manga(id) }
 
         override suspend fun stats(id: String): MangaStats? = api.statistics(listOf(id))[id]
 
         override suspend fun chapters(
+            mangaId: String,
+            languages: List<String>,
+        ): List<Chapter> = chapterCache.getOrPut(mangaId to languages) { fetchChapters(mangaId, languages) }
+
+        override suspend fun chapter(id: String): Chapter = api.chapter(id)
+
+        override suspend fun atHomeServer(chapterId: String): AtHomeServer = api.atHomeServer(chapterId)
+
+        private suspend fun fetchChapters(
             mangaId: String,
             languages: List<String>,
         ): List<Chapter> {
@@ -99,5 +112,7 @@ internal class DefaultMangaRepository
             const val PAGE_SIZE = 30
             const val FEED_PAGE = 500
             const val POPULAR_SUGGESTIONS = 3
+            const val CACHE_SIZE = 20
+            const val CACHE_TTL_MILLIS = 5 * 60 * 1000L
         }
     }

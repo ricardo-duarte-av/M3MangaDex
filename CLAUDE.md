@@ -47,7 +47,12 @@ Releases are cut by pushing a `v<versionName>` tag. See `RELEASE.md`.
   `@ImageClient`. The app provides `UserAgent`. Tests use MockWebServer with trimmed real responses in
   `src/test/resources/fixtures`.
 - `core:datastore`: `PreferencesDataSource` (chapter languages, content ratings, data saver).
-- `core:data`: `MangaRepository` (Browse sections, paged search, suggestions, details, full chapter feed, tags).
+- `core:database`: Room 3 (`androidx.room3`, bundled SQLite driver; tests use `AndroidSQLiteDriver` on Robolectric).
+  It holds reading progress and per-manga reader mode. It is not a cache, so schema changes need real migrations.
+- `core:data`: `ReadingRepository` (progress, last read, reader mode); `MangaRepository` (Browse sections, paged search, suggestions, details, full chapter feed, tags).
+- `feature:reader`: `PagedReader` (pagers + telephoto zoom + spreads), `WebtoonReader` (LazyColumn strip),
+  `ReaderCommand` (jump/step requests from the chrome, tap zones and volume keys), `PreloadPages`.
+  `ReaderKey` hides the navigation suite.
 - `feature:{browse,search,manga,settings}`: one `Route` (Hilt VM; assisted factory when it takes nav args) plus a
   stateless `Screen` each, with a Roborazzi screenshot of the `Screen`.
 - Navigation keys live in `app/.../navigation/M3MangaDexApp.kt`. `MangaKey` is the detail pane, and the

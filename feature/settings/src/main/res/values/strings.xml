@@ -10,6 +10,9 @@
     <string name="settings_reading">Reading</string>
     <string name="settings_data_saver">Data saver</string>
     <string name="settings_data_saver_hint">Load compressed pages. Uses less data, looks a little softer.</string>
+    <string name="settings_spreads">Two-page spreads</string>
+    <string name="settings_spreads_hint">On wide screens in landscape, show facing pages side by side, like an open book.</string>
+    <string name="settings_volume_keys">Volume keys turn pages</string>
     <string name="settings_about">About</string>
     <string name="settings_version">Version %1$s</string>
     <string name="settings_credit">Content is provided by MangaDex and its scanlation groups. M3MangaDex is not affiliated with MangaDex.</string>

@@ -118,6 +118,29 @@ internal data class RatingDto(
 )
 
 @Serializable
+internal data class AtHomeDto(
+    val baseUrl: String,
+    val chapter: AtHomeChapterDto,
+)
+
+@Serializable
+internal data class AtHomeChapterDto(
+    val hash: String,
+    val data: List<String> = emptyList(),
+    val dataSaver: List<String> = emptyList(),
+)
+
+/** What MangaDex@Home wants to hear about every page fetched from one of its nodes. */
+@Serializable
+internal data class ImageReportDto(
+    val url: String,
+    val success: Boolean,
+    val bytes: Long,
+    val duration: Long,
+    val cached: Boolean,
+)
+
+@Serializable
 internal data class ErrorResponseDto(
     val errors: List<ErrorDto> = emptyList(),
 )

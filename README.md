@@ -3,7 +3,7 @@
 A native Android client for [MangaDex](https://mangadex.org), built with Material 3 Expressive.
 It's a comic reader for phones, tablets and foldables, and it takes its colours from manga cover art.
 
-Status: **M1 (API & browsing)**: browse, search with filters and manga details work without an account; the reader comes in M2. See [docs/MILESTONES.md](docs/MILESTONES.md) for the roadmap.
+Status: **M2 (reader)**: browse, search, details and a full reader (paged left-to-right, right-to-left and vertical, webtoon strip, zoom, two-page spreads on wide screens, local reading progress), all without an account. See [docs/MILESTONES.md](docs/MILESTONES.md) for the roadmap.
 
 - Anonymous browsing and reading, plus optional login with your own MangaDex
   [personal API client](https://api.mangadex.org/docs/02-authentication/personal-clients/)

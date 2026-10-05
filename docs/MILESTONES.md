@@ -98,7 +98,28 @@ Original plan:
   - The list-detail layout puts search results and details side by side on tablets.
 - `core:datastore` settings: languages, content ratings, data saver, theme.
 
-### M2 — Reader
+### M2 — Reader ✅ (v0.2.x)
+
+Done as planned:
+- Paged reading (LTR, RTL, vertical) and a webtoon strip. The mode defaults from the original
+  language and the Long Strip tag, and the user's choice is remembered per manga in Room.
+- Zoom with telephoto: pinch and double-tap, with pan hand-off to the pager. Tap zones are mirrored
+  for RTL.
+- Two-page spreads in landscape windows ≥ 600 dp: the cover stands alone, wide pages stand alone and
+  pairing restarts after them, and the place is kept when sizes arrive.
+- Preloading 4 pages ahead. MangaDex@Home load reports go through `AtHomeReportInterceptor`. A failed
+  page re-fetches the at-home server and can be retried.
+- Chrome with a page slider (mirrored for RTL), previous/next chapter that prefers the same group, an
+  options menu, auto-hide, immersive mode, keep-screen-on and volume-key paging.
+- An end-of-chapter card credits the group and offers the next chapter. Publisher-hosted next
+  chapters open in a Custom Tab.
+- Local progress in Room (`core:database`). Details shows "Continue Ch. X", dims read chapters and
+  shows the page reached on half-read ones.
+
+Deferred: pinch-zoom inside the webtoon strip. Telephoto zooms single images, and zooming a whole
+lazy list needs a custom gesture layer.
+
+Original plan:
 - `feature:reader`:
   - Data comes from the at-home server, using the separate image OkHttp client that never sends auth.
   - Modes: paged LTR, paged RTL (the default for manga), vertical paged, and continuous webtoon strip.

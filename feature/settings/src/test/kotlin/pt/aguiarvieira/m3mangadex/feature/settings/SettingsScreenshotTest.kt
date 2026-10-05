@@ -23,7 +23,15 @@ class SettingsScreenshotTest {
         val preferences = UserPreferences(listOf("pt", "en"), ContentRating.Default, dataSaver = true)
         compose.setContent {
             M3MangaDexTheme(darkTheme = false, dynamicColor = false) {
-                SettingsScreen(preferences, versionName = "0.1.0", onToggleLanguage = {}, onToggleRating = {}, onDataSaverChange = {})
+                SettingsScreen(
+                    preferences,
+                    versionName = "0.1.0",
+                    onToggleLanguage = {},
+                    onToggleRating = {},
+                    onDataSaverChange = {},
+                    onSpreadsChange = {},
+                    onVolumeKeysChange = {},
+                )
             }
         }
         compose.onRoot().captureRoboImage("src/test/screenshots/settings.png")
