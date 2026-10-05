@@ -6,7 +6,11 @@
     <string name="manga_less">Less</string>
     <string name="manga_chapters">Chapters</string>
     <string name="manga_chapters_count">%1$d chapters</string>
-    <string name="manga_no_chapters">No chapters in your languages (%1$s). Change them in Settings.</string>
+    <string name="manga_no_chapters">No chapters in your languages (%1$s). Pick another language above, or change yours in Settings.</string>
+    <plurals name="manga_other_languages">
+        <item quantity="one">Also in %1$d other language</item>
+        <item quantity="other">Also in %1$d other languages</item>
+    </plurals>
     <string name="manga_chapters_failed">Couldn’t load the chapters.</string>
     <string name="manga_volume">Volume %1$s</string>
     <string name="manga_no_volume">No volume</string>

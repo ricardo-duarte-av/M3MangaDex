@@ -31,6 +31,8 @@ class SettingsScreenshotTest {
                     onDataSaverChange = {},
                     onSpreadsChange = {},
                     onVolumeKeysChange = {},
+                    onCoverThemingChange = {},
+                    onCropBordersChange = {},
                 )
             }
         }

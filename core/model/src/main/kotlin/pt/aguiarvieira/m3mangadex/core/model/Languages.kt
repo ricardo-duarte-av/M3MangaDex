@@ -29,6 +29,21 @@ object Languages {
             "zh-hk",
         )
 
+    /**
+     * MangaDex splits a few languages by region. Readers of one variant can read the other, and
+     * scanlation tends to cluster in one of them (almost all Portuguese is `pt-br`), so they go
+     * together.
+     */
+    private val regionalSiblings =
+        mapOf(
+            "pt" to "pt-br",
+            "pt-br" to "pt",
+            "es" to "es-la",
+            "es-la" to "es",
+            "zh" to "zh-hk",
+            "zh-hk" to "zh",
+        )
+
     private val latinAmerica =
         setOf(
             "MX",
@@ -51,7 +66,7 @@ object Languages {
             "UY",
             "PR",
             "US",
-            "419"
+            "419",
         )
 
     /** The MangaDex code for [locale]: `pt-BR` → `pt-br`, `es-MX` → `es-la`, `zh-TW` → `zh-hk`. */
@@ -68,8 +83,11 @@ object Languages {
         }
     }
 
-    /** First run: the device's language, then English. */
-    fun defaults(locale: Locale): List<String> = listOf(fromLocale(locale), "en").distinct()
+    /** First run: the device's language, its regional sibling, then English. */
+    fun defaults(locale: Locale): List<String> {
+        val own = fromLocale(locale)
+        return listOfNotNull(own, regionalSiblings[own], "en").distinct()
+    }
 
     /** A human name for [code], in [display]'s language. */
     fun displayName(

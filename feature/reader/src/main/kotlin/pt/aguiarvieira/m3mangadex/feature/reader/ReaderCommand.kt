@@ -67,22 +67,21 @@ internal fun PreloadPages(
     urls: List<String>,
     generation: Int,
     current: Int,
+    cropBorders: Boolean,
     onSize: (page: Int, width: Int, height: Int) -> Unit,
     onFail: (page: Int) -> Unit,
     ahead: Int = PRELOAD_AHEAD,
 ) {
     val context = LocalContext.current
-    val requested = remember(urls, generation) { mutableSetOf<Int>() }
+    val requested = remember(urls, generation, cropBorders) { mutableSetOf<Int>() }
     val sizeCallback by rememberUpdatedState(onSize)
     val failCallback by rememberUpdatedState(onFail)
-    LaunchedEffect(urls, generation, current) {
+    LaunchedEffect(urls, generation, cropBorders, current) {
         val loader = context.imageLoader
         for (page in current..(current + ahead).coerceAtMost(urls.lastIndex)) {
             if (!requested.add(page)) continue
             loader.enqueue(
-                ImageRequest
-                    .Builder(context)
-                    .data(urls[page])
+                pageRequest(context, urls[page], cropBorders)
                     .listener(
                         onSuccess = { _, result -> sizeCallback(page, result.image.width, result.image.height) },
                         onError = { _, _ -> failCallback(page) },

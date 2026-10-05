@@ -14,10 +14,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import pt.aguiarvieira.m3mangadex.core.data.ChapterLanguages
 import pt.aguiarvieira.m3mangadex.core.data.MangaRepository
 import pt.aguiarvieira.m3mangadex.core.data.ReadingRepository
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
@@ -53,6 +53,12 @@ sealed interface MangaUiState {
     ) : MangaUiState
 }
 
+/** Languages this manga has chapters in beyond the user's global ones, and which are switched on. */
+data class OtherLanguages(
+    val available: List<String> = emptyList(),
+    val selected: Set<String> = emptySet(),
+)
+
 /** Where the user is in this manga: per-chapter progress and what the main button opens. */
 data class ReadingState(
     val progress: Map<String, ChapterProgress> = emptyMap(),
@@ -68,28 +74,52 @@ class MangaViewModel
     constructor(
         @Assisted private val mangaId: String,
         private val repository: MangaRepository,
-        reading: ReadingRepository,
+        private val readingRepository: ReadingRepository,
+        chapterLanguages: ChapterLanguages,
         preferences: PreferencesDataSource,
     ) : ViewModel() {
         private val _state = MutableStateFlow<MangaUiState>(MangaUiState.Loading)
         val state: StateFlow<MangaUiState> = _state.asStateFlow()
 
         val reading: StateFlow<ReadingState> =
-            combine(_state, reading.progress(mangaId), reading.lastRead(mangaId)) { state, progress, last ->
+            combine(
+                _state,
+                readingRepository.progress(mangaId),
+                readingRepository.lastRead(mangaId)
+            ) { state, progress, last ->
                 val chapters = ((state as? MangaUiState.Loaded)?.chapters as? ChaptersState.Loaded)?.all.orEmpty()
                 ReadingState(progress, resumeChapter(chapters, last), started = last != null)
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ReadingState())
+
+        val otherLanguages: StateFlow<OtherLanguages> =
+            combine(
+                _state,
+                preferences.preferences.map { it.chapterLanguages },
+                readingRepository.extraLanguages(mangaId),
+            ) { state, global, extra ->
+                val available = (state as? MangaUiState.Loaded)?.manga?.availableLanguages.orEmpty()
+                OtherLanguages(available.filterNot { it in global }.sorted(), extra.toSet())
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), OtherLanguages())
 
         private var loading: Job? = null
         private var languages: List<String>? = null
 
         init {
-            // Chapters follow the chapter-language setting; reload when it changes.
+            // Chapters follow the global and this manga's extra languages; reload when they change.
             viewModelScope.launch {
-                preferences.preferences.map { it.chapterLanguages }.distinctUntilChanged().collect {
+                chapterLanguages.forManga(mangaId).collect {
                     languages = it
                     load(it)
                 }
+            }
+        }
+
+        /** Shows (or hides again) this manga's chapters in [language]. */
+        fun toggleLanguage(language: String) {
+            viewModelScope.launch {
+                val current = otherLanguages.value.selected
+                val next = if (language in current) current - language else current + language
+                readingRepository.setExtraLanguages(mangaId, next.toList())
             }
         }
 
@@ -108,8 +138,13 @@ class MangaViewModel
                         _state.value = MangaUiState.Failed
                         return@launch
                     }
-                    _state.value = MangaUiState.Loaded(manga, null, ChaptersState.Loading, languages)
-                    val loadedStats = stats.await()
+                    // A reload (languages changed) keeps the current list until the new one is in, so the
+                    // screen doesn't collapse and lose its scroll position.
+                    val shown = _state.value as? MangaUiState.Loaded
+                    if (shown?.chapters !is ChaptersState.Loaded) {
+                        _state.value = MangaUiState.Loaded(manga, shown?.stats, ChaptersState.Loading, languages)
+                    }
+                    val loadedStats = stats.await() ?: shown?.stats
                     val chapterState =
                         chapters.await()?.getOrNull()?.let { list -> ChaptersState.Loaded(groupByVolume(list), list) }
                             ?: ChaptersState.Failed

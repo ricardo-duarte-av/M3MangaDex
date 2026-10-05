@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import pt.aguiarvieira.m3mangadex.core.data.ChapterLanguages
 import pt.aguiarvieira.m3mangadex.core.data.MangaRepository
 import pt.aguiarvieira.m3mangadex.core.data.ReadingRepository
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
@@ -22,6 +23,7 @@ import pt.aguiarvieira.m3mangadex.core.model.AtHomeServer
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
 import pt.aguiarvieira.m3mangadex.core.model.ChapterNeighbors
 import pt.aguiarvieira.m3mangadex.core.model.Manga
+import pt.aguiarvieira.m3mangadex.core.model.PageFit
 import pt.aguiarvieira.m3mangadex.core.model.ReaderMode
 import pt.aguiarvieira.m3mangadex.core.model.neighbors
 
@@ -49,6 +51,8 @@ data class ReaderUiState(
     val failedPages: Set<Int> = emptySet(),
     val doublePageSpreads: Boolean = true,
     val volumeKeyPaging: Boolean = false,
+    val pageFit: PageFit = PageFit.Auto,
+    val cropBorders: Boolean = true,
     val languages: List<String> = emptyList(),
 ) {
     /** The user's choice for this manga, else its natural mode (right-to-left for manga, …). */
@@ -63,6 +67,7 @@ class ReaderViewModel
         @Assisted("chapter") private val chapterId: String,
         private val repository: MangaRepository,
         private val reading: ReadingRepository,
+        private val chapterLanguages: ChapterLanguages,
         private val preferences: PreferencesDataSource,
     ) : ViewModel() {
         private val _state = MutableStateFlow(ReaderUiState())
@@ -83,6 +88,8 @@ class ReaderViewModel
                         it.copy(
                             doublePageSpreads = prefs.doublePageSpreads,
                             volumeKeyPaging = prefs.volumeKeyPaging,
+                            pageFit = prefs.pageFit,
+                            cropBorders = prefs.cropBorders,
                             languages = prefs.chapterLanguages,
                         )
                     }
@@ -97,7 +104,7 @@ class ReaderViewModel
         fun load() {
             viewModelScope.launch {
                 _state.update { it.copy(pages = PagesState.Loading) }
-                val languages = preferences.preferences.first().chapterLanguages
+                val languages = chapterLanguages.forManga(mangaId).first()
                 val manga = attempt { repository.manga(mangaId) }
                 val chapters = attempt { repository.chapters(mangaId, languages) }.orEmpty()
                 val chapter = chapters.firstOrNull { it.id == chapterId } ?: attempt { repository.chapter(chapterId) }
@@ -152,6 +159,14 @@ class ReaderViewModel
 
         fun setDoublePageSpreads(enabled: Boolean) {
             viewModelScope.launch { preferences.setDoublePageSpreads(enabled) }
+        }
+
+        fun setPageFit(fit: PageFit) {
+            viewModelScope.launch { preferences.setPageFit(fit) }
+        }
+
+        fun setCropBorders(enabled: Boolean) {
+            viewModelScope.launch { preferences.setCropBorders(enabled) }
         }
 
         fun setVolumeKeyPaging(enabled: Boolean) {

@@ -62,8 +62,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.ErrorMessage
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.Loading
+import pt.aguiarvieira.m3mangadex.core.designsystem.theme.PublishCover
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
+import pt.aguiarvieira.m3mangadex.core.model.PageFit
 import pt.aguiarvieira.m3mangadex.core.model.ReaderMode
+import pt.aguiarvieira.m3mangadex.core.model.coverUrl
 import kotlin.math.roundToInt
 import pt.aguiarvieira.m3mangadex.core.designsystem.R as DsR
 
@@ -85,6 +88,8 @@ fun ReaderRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    // The reader keeps wearing the manga's cover colours, like its details screen.
+    PublishCover(state.manga?.coverUrl())
     ReaderScreen(
         state = state,
         onBack = onBack,
@@ -98,6 +103,8 @@ fun ReaderRoute(
         onModeChange = viewModel::setMode,
         onSpreadsChange = viewModel::setDoublePageSpreads,
         onVolumeKeysChange = viewModel::setVolumeKeyPaging,
+        onPageFitChange = viewModel::setPageFit,
+        onCropBordersChange = viewModel::setCropBorders,
         modifier = modifier,
     )
 }
@@ -129,6 +136,8 @@ fun ReaderScreen(
     onModeChange: (ReaderMode) -> Unit,
     onSpreadsChange: (Boolean) -> Unit,
     onVolumeKeysChange: (Boolean) -> Unit,
+    onPageFitChange: (PageFit) -> Unit,
+    onCropBordersChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var chrome by rememberSaveable { mutableStateOf(true) }
@@ -204,6 +213,8 @@ fun ReaderScreen(
                         generation = pages.generation,
                         mode = state.mode,
                         spreadsEnabled = state.doublePageSpreads,
+                        fit = state.pageFit,
+                        cropBorders = state.cropBorders,
                         startPage = page,
                         failedPages = state.failedPages,
                         commands = commands,
@@ -233,6 +244,8 @@ fun ReaderScreen(
             onModeChange = onModeChange,
             onSpreadsChange = onSpreadsChange,
             onVolumeKeysChange = onVolumeKeysChange,
+            onPageFitChange = onPageFitChange,
+            onCropBordersChange = onCropBordersChange,
         )
     }
 }
@@ -249,6 +262,8 @@ private fun ReaderChrome(
     onModeChange: (ReaderMode) -> Unit,
     onSpreadsChange: (Boolean) -> Unit,
     onVolumeKeysChange: (Boolean) -> Unit,
+    onPageFitChange: (PageFit) -> Unit,
+    onCropBordersChange: (Boolean) -> Unit,
 ) {
     Box(Modifier.fillMaxSize()) {
         AnimatedVisibility(
@@ -282,7 +297,14 @@ private fun ReaderChrome(
                             )
                         }
                     }
-                    OptionsMenu(state, onModeChange, onSpreadsChange, onVolumeKeysChange)
+                    OptionsMenu(
+                        state,
+                        onModeChange,
+                        onSpreadsChange,
+                        onVolumeKeysChange,
+                        onPageFitChange,
+                        onCropBordersChange
+                    )
                 }
             }
         }
@@ -374,6 +396,8 @@ private fun OptionsMenu(
     onModeChange: (ReaderMode) -> Unit,
     onSpreadsChange: (Boolean) -> Unit,
     onVolumeKeysChange: (Boolean) -> Unit,
+    onPageFitChange: (PageFit) -> Unit,
+    onCropBordersChange: (Boolean) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
     Box {
@@ -395,6 +419,27 @@ private fun OptionsMenu(
                         open = false
                         onModeChange(mode)
                     },
+                )
+            }
+            if (state.mode.isPaged) {
+                HorizontalDivider()
+                PageFit.entries.forEach { fit ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(fit.label)) },
+                        leadingIcon = {
+                            if (fit ==
+                                state.pageFit
+                            ) {
+                                Icon(painterResource(DsR.drawable.ic_check), contentDescription = null)
+                            }
+                        },
+                        onClick = { onPageFitChange(fit) },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.reader_crop_borders)) },
+                    trailingIcon = { Switch(checked = state.cropBorders, onCheckedChange = null) },
+                    onClick = { onCropBordersChange(!state.cropBorders) },
                 )
             }
             HorizontalDivider()
@@ -419,6 +464,15 @@ private val ReaderMode.label: Int
             ReaderMode.RightToLeft -> R.string.reader_mode_rtl
             ReaderMode.Vertical -> R.string.reader_mode_vertical
             ReaderMode.Webtoon -> R.string.reader_mode_webtoon
+        }
+
+internal val PageFit.label: Int
+    get() =
+        when (this) {
+            PageFit.Auto -> R.string.reader_fit_auto
+            PageFit.Screen -> R.string.reader_fit_screen
+            PageFit.Width -> R.string.reader_fit_width
+            PageFit.Height -> R.string.reader_fit_height
         }
 
 private const val CHROME_ALPHA = 0.92f

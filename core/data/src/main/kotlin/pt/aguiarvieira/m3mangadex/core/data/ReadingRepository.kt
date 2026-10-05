@@ -29,4 +29,12 @@ interface ReadingRepository {
         mangaId: String,
         mode: ReaderMode,
     )
+
+    /** Chapter languages shown for [mangaId] on top of the global ones. */
+    fun extraLanguages(mangaId: String): Flow<List<String>>
+
+    suspend fun setExtraLanguages(
+        mangaId: String,
+        languages: List<String>,
+    )
 }

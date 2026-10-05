@@ -50,4 +50,5 @@ Compose:
     active: true
   CompositionLocalAllowlist:
     active: true
-    allowedCompositionLocals: []
+    # The user's cover-theming setting, read by CoverTheme deep inside feature screens.
+    allowedCompositionLocals: ['LocalCoverTheming', 'LocalCoverHolder']

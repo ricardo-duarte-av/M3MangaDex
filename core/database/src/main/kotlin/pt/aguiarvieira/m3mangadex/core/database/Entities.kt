@@ -22,4 +22,6 @@ data class MangaSettingsEntity(
     @PrimaryKey val mangaId: String,
     /** A `ReaderMode` name, or null for the default for that manga. */
     val readerMode: String?,
+    /** Comma-separated chapter languages shown for this manga on top of the global ones (v2). */
+    val extraLanguages: String? = null,
 )

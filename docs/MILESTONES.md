@@ -132,7 +132,28 @@ Original plan:
   - On image failure, fetches the base URL again; reports every image load.
 - `core:database` (Room): history and last-read page per chapter, so local progress works while anonymous.
 
-### M3 — Content-driven theming
+### M3 — Content-driven theming ✅ (v0.3.x)
+
+Done:
+- Cover theming. `CoverSeed` (Monet's Celebi + Score, ported from jellymusic) picks the seed.
+  Screens `PublishCover`, and the app shell wraps everything, navigation bar included, in
+  `CoverTheme`, so a screen never shows two palettes. Every colour role animates between schemes
+  (`animateColorScheme`). There's a Settings toggle. The predictive-back arrow is drawn by System UI
+  from the wallpaper and can't be tinted by apps.
+- Language defaults include MangaDex's regional siblings (`pt` + `pt-br`, `es` + `es-la`,
+  `zh` + `zh-hk`).
+- Details shows "Also in N other languages" chips. Turning one on lists that language's chapters for
+  this manga only (Room v2 `manga_settings.extraLanguages`, with a tested migration). The reader uses
+  the same languages through `ChapterLanguages`.
+- Crop borders: `Borders.detect` finds uniform black or white scan margins and
+  `CropBordersTransformation` trims them. Pages now render through `Modifier.zoomable` +
+  `SpreadPainter` instead of telephoto's sub-sampling, so crops apply.
+- Page fit: Auto (screen in portrait, width in landscape), Screen, Width or Height. In fit-width,
+  forward/back taps and volume keys scroll through a tall page before turning it.
+
+Not done: the "theme from the current page" idea; cover colours are enough in practice.
+
+Original plan:
 - Port `AlbumSeed` (materialkolor `QuantizerCelebi` + `Score` on a 128px bitmap) into `core:designsystem` as `CoverSeed`, and add `CoverTheme(coverUrl)`.
 - Improve on jellymusic by animating the scheme change: interpolate each `ColorScheme` role with `animateColorAsState` under the expressive motion spec, so the scheme no longer swaps in all at once.
 - Cache seeds in an LRU keyed by manga ID, and persist them in Room alongside the manga.

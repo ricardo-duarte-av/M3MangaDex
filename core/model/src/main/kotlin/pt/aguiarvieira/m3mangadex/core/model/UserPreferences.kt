@@ -10,4 +10,25 @@ data class UserPreferences(
     val volumeKeyPaging: Boolean = false,
     /** Show two pages side by side on wide screens (paged modes). */
     val doublePageSpreads: Boolean = true,
+    /** How paged modes scale a page to the screen. */
+    val pageFit: PageFit = PageFit.Auto,
+    /** Trim solid black or white margins scanned around the artwork. */
+    val cropBorders: Boolean = true,
+    /** Tint screens with colours picked from the manga's cover. */
+    val coverTheming: Boolean = true,
 )
+
+/** How a page (or spread) is scaled in the paged reader modes. */
+enum class PageFit {
+    /** The whole page is visible: [Screen] in portrait, [Width] in landscape. */
+    Auto,
+
+    /** The whole page is visible, letterboxed as needed. */
+    Screen,
+
+    /** The page fills the width; taller pages scroll down before the page turns. */
+    Width,
+
+    /** The page fills the height. */
+    Height,
+}

@@ -6,6 +6,7 @@ import android.icu.text.CompactDecimalFormat
 import android.text.format.DateUtils
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,9 +21,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -52,6 +55,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -63,6 +67,7 @@ import kotlinx.coroutines.launch
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.ErrorMessage
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.Loading
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.MangaCover
+import pt.aguiarvieira.m3mangadex.core.designsystem.theme.PublishCover
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
 import pt.aguiarvieira.m3mangadex.core.model.ChapterProgress
 import pt.aguiarvieira.m3mangadex.core.model.Covers
@@ -90,13 +95,18 @@ fun MangaRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val reading by viewModel.reading.collectAsStateWithLifecycle()
+    val otherLanguages by viewModel.otherLanguages.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val readerComing = stringResource(R.string.manga_reader_coming)
+    // The whole app, navigation bar included, takes on the cover's colours while this is open.
+    PublishCover((state as? MangaUiState.Loaded)?.manga?.coverUrl())
     MangaScreen(
         state = state,
         reading = reading,
+        otherLanguages = otherLanguages,
+        onToggleLanguage = viewModel::toggleLanguage,
         snackbar = snackbar,
         onBack = onBack,
         onRetry = viewModel::retry,
@@ -138,6 +148,8 @@ fun MangaScreen(
     onOpenChapter: (Chapter) -> Unit,
     modifier: Modifier = Modifier,
     reading: ReadingState = ReadingState(),
+    otherLanguages: OtherLanguages = OtherLanguages(),
+    onToggleLanguage: (String) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -199,7 +211,15 @@ fun MangaScreen(
                     }
                     item(key = "description") { Description(state.manga.displayDescription(state.languages)) }
                     item(key = "tags") { Tags(state.manga, onOpenTag) }
-                    chapters(state.chapters, state.languages, reading.progress, onOpenChapter, onRetry)
+                    chapters(
+                        state.chapters,
+                        state.languages,
+                        reading.progress,
+                        otherLanguages,
+                        onToggleLanguage,
+                        onOpenChapter,
+                        onRetry
+                    )
                 }
             }
         }
@@ -326,6 +346,8 @@ private fun LazyListScope.chapters(
     state: ChaptersState,
     languages: List<String>,
     progress: Map<String, ChapterProgress>,
+    otherLanguages: OtherLanguages,
+    onToggleLanguage: (String) -> Unit,
     onOpenChapter: (Chapter) -> Unit,
     onRetry: () -> Unit,
 ) {
@@ -352,6 +374,9 @@ private fun LazyListScope.chapters(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
                 )
             }
+            if (otherLanguages.available.isNotEmpty()) {
+                item(key = "other-languages") { OtherLanguagesRow(otherLanguages, onToggleLanguage) }
+            }
             if (state.count == 0) {
                 item(key = "chapters-empty") {
                     val locale = LocalConfiguration.current.locales[0]
@@ -366,26 +391,60 @@ private fun LazyListScope.chapters(
                     )
                 }
             }
-            state.volumes.forEach { group ->
-                stickyHeader(key = "volume-${group.volume}") {
-                    Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            group.volume?.let { stringResource(R.string.manga_volume, it) }
-                                ?: stringResource(R.string.manga_no_volume),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        )
-                    }
-                }
-                items(group.chapters, key = { "chapter-${it.id}" }) { chapter ->
-                    ChapterRow(
-                        chapter = chapter,
-                        progress = progress[chapter.id],
-                        showLanguage = languages.size > 1,
-                        onClick = { onOpenChapter(chapter) },
-                    )
-                }
+            state.volumes.forEach { group -> volume(group, languages.size > 1, progress, onOpenChapter) }
+        }
+    }
+}
+
+/** One volume: a sticky heading, then its chapters. */
+private fun LazyListScope.volume(
+    group: VolumeGroup,
+    showLanguage: Boolean,
+    progress: Map<String, ChapterProgress>,
+    onOpenChapter: (Chapter) -> Unit,
+) {
+    stickyHeader(key = "volume-${group.volume}") {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
+            Text(
+                group.volume?.let { stringResource(R.string.manga_volume, it) }
+                    ?: stringResource(R.string.manga_no_volume),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
+    }
+    items(group.chapters, key = { "chapter-${it.id}" }) { chapter ->
+        ChapterRow(chapter, progress[chapter.id], showLanguage, onClick = { onOpenChapter(chapter) })
+    }
+}
+
+/**
+ * The languages this manga is translated into beyond the user's own; switching one on lists its
+ * chapters too, for this manga only.
+ */
+@Composable
+private fun OtherLanguagesRow(
+    languages: OtherLanguages,
+    onToggle: (String) -> Unit,
+) {
+    val locale = LocalConfiguration.current.locales[0]
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+        Text(
+            pluralStringResource(R.plurals.manga_other_languages, languages.available.size, languages.available.size),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()).padding(top = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            languages.available.forEach { code ->
+                FilterChip(
+                    selected = code in languages.selected,
+                    onClick = { onToggle(code) },
+                    label = { Text(Languages.displayName(code, locale)) },
+                )
             }
         }
     }

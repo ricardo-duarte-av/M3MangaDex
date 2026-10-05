@@ -50,7 +50,11 @@ Releases are cut by pushing a `v<versionName>` tag. See `RELEASE.md`.
 - `core:database`: Room 3 (`androidx.room3`, bundled SQLite driver; tests use `AndroidSQLiteDriver` on Robolectric).
   It holds reading progress and per-manga reader mode. It is not a cache, so schema changes need real migrations.
 - `core:data`: `ReadingRepository` (progress, last read, reader mode); `MangaRepository` (Browse sections, paged search, suggestions, details, full chapter feed, tags).
-- `feature:reader`: `PagedReader` (pagers + telephoto zoom + spreads), `WebtoonReader` (LazyColumn strip),
+- Cover theming: screens call `PublishCover(url)`. `M3MangaDexApp` provides `LocalCoverHolder` and wraps the shell
+  in `CoverTheme(holder.current)`. Don't wrap individual screens in `CoverTheme` (that leaves the nav bar off-palette).
+- `feature:reader`: pages are Coil painters (`pageRequest`: original size, optional `CropBordersTransformation`) shown
+  by `ZoomablePage` (`Modifier.zoomable`; the fit mode is `ZoomableState.contentScale`). Spreads use `SpreadPainter`.
+  The rest: `PagedReader` (pagers + telephoto zoom + spreads), `WebtoonReader` (LazyColumn strip),
   `ReaderCommand` (jump/step requests from the chrome, tap zones and volume keys), `PreloadPages`.
   `ReaderKey` hides the navigation suite.
 - `feature:{browse,search,manga,settings}`: one `Route` (Hilt VM; assisted factory when it takes nav args) plus a

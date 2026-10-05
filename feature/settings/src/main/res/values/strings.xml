@@ -7,7 +7,12 @@
     <string name="settings_rating_safe">Safe</string>
     <string name="settings_rating_suggestive">Suggestive</string>
     <string name="settings_rating_erotica">Erotica</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_cover_theming">Colours from cover art</string>
+    <string name="settings_cover_theming_hint">A manga’s details and reader take on the colours of its cover.</string>
     <string name="settings_reading">Reading</string>
+    <string name="settings_crop_borders">Crop borders</string>
+    <string name="settings_crop_borders_hint">Trim the black or white margins some scans have around the artwork, so it fills the screen.</string>
     <string name="settings_data_saver">Data saver</string>
     <string name="settings_data_saver_hint">Load compressed pages. Uses less data, looks a little softer.</string>
     <string name="settings_spreads">Two-page spreads</string>

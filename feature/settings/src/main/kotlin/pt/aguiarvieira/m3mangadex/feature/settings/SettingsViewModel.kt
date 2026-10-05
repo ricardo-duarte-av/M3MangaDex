@@ -42,6 +42,14 @@ class SettingsViewModel
             viewModelScope.launch { preferences.setDoublePageSpreads(enabled) }
         }
 
+        fun setCoverTheming(enabled: Boolean) {
+            viewModelScope.launch { preferences.setCoverTheming(enabled) }
+        }
+
+        fun setCropBorders(enabled: Boolean) {
+            viewModelScope.launch { preferences.setCropBorders(enabled) }
+        }
+
         fun setVolumeKeyPaging(enabled: Boolean) {
             viewModelScope.launch { preferences.setVolumeKeyPaging(enabled) }
         }

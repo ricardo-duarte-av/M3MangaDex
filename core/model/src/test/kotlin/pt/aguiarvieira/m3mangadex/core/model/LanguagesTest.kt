@@ -17,8 +17,10 @@ class LanguagesTest {
     }
 
     @Test
-    fun `defaults add English once`() {
-        assertEquals(listOf("pt", "en"), Languages.defaults(Locale.forLanguageTag("pt-PT")))
+    fun `defaults add the regional sibling, then English once`() {
+        assertEquals(listOf("pt", "pt-br", "en"), Languages.defaults(Locale.forLanguageTag("pt-PT")))
+        assertEquals(listOf("es-la", "es", "en"), Languages.defaults(Locale.forLanguageTag("es-MX")))
+        assertEquals(listOf("fr", "en"), Languages.defaults(Locale.FRANCE))
         assertEquals(listOf("en"), Languages.defaults(Locale.US))
     }
 }

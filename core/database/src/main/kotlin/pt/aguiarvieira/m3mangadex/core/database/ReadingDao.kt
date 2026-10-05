@@ -22,6 +22,12 @@ interface ReadingDao {
     @Query("SELECT readerMode FROM manga_settings WHERE mangaId = :mangaId")
     fun readerMode(mangaId: String): Flow<String?>
 
+    @Query("SELECT * FROM manga_settings WHERE mangaId = :mangaId")
+    fun settings(mangaId: String): Flow<MangaSettingsEntity?>
+
+    @Query("SELECT * FROM manga_settings WHERE mangaId = :mangaId")
+    suspend fun settingsNow(mangaId: String): MangaSettingsEntity?
+
     @Upsert
     suspend fun upsertSettings(settings: MangaSettingsEntity)
 }

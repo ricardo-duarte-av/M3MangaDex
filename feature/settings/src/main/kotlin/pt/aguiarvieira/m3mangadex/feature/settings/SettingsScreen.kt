@@ -51,6 +51,8 @@ fun SettingsRoute(
         onDataSaverChange = viewModel::setDataSaver,
         onSpreadsChange = viewModel::setDoublePageSpreads,
         onVolumeKeysChange = viewModel::setVolumeKeyPaging,
+        onCoverThemingChange = viewModel::setCoverTheming,
+        onCropBordersChange = viewModel::setCropBorders,
         modifier = modifier,
     )
 }
@@ -65,6 +67,8 @@ fun SettingsScreen(
     onDataSaverChange: (Boolean) -> Unit,
     onSpreadsChange: (Boolean) -> Unit,
     onVolumeKeysChange: (Boolean) -> Unit,
+    onCoverThemingChange: (Boolean) -> Unit,
+    onCropBordersChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -115,7 +119,22 @@ fun SettingsScreen(
                     }
                 }
             }
+            item { Heading(R.string.settings_appearance) }
+            item {
+                ListItem(
+                    onClick = { onCoverThemingChange(!preferences.coverTheming) },
+                    supportingContent = { Text(stringResource(R.string.settings_cover_theming_hint)) },
+                    trailingContent = { Switch(checked = preferences.coverTheming, onCheckedChange = null) },
+                ) { Text(stringResource(R.string.settings_cover_theming)) }
+            }
             item { Heading(R.string.settings_reading) }
+            item {
+                ListItem(
+                    onClick = { onCropBordersChange(!preferences.cropBorders) },
+                    supportingContent = { Text(stringResource(R.string.settings_crop_borders_hint)) },
+                    trailingContent = { Switch(checked = preferences.cropBorders, onCheckedChange = null) },
+                ) { Text(stringResource(R.string.settings_crop_borders)) }
+            }
             item {
                 ListItem(
                     onClick = { onDataSaverChange(!preferences.dataSaver) },

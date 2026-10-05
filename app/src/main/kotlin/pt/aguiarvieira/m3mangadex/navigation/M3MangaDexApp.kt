@@ -19,9 +19,11 @@ import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneSt
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,6 +43,9 @@ import kotlinx.serialization.Serializable
 import pt.aguiarvieira.m3mangadex.BuildConfig
 import pt.aguiarvieira.m3mangadex.R
 import pt.aguiarvieira.m3mangadex.core.data.BrowseSection
+import pt.aguiarvieira.m3mangadex.core.designsystem.theme.CoverHolder
+import pt.aguiarvieira.m3mangadex.core.designsystem.theme.CoverTheme
+import pt.aguiarvieira.m3mangadex.core.designsystem.theme.LocalCoverHolder
 import pt.aguiarvieira.m3mangadex.feature.browse.BrowseRoute
 import pt.aguiarvieira.m3mangadex.feature.manga.MangaRoute
 import pt.aguiarvieira.m3mangadex.feature.reader.ReaderRoute
@@ -101,79 +106,85 @@ fun M3MangaDexApp(modifier: Modifier = Modifier) {
     val reading = stacks.getValue(current).lastOrNull() is ReaderKey
     LaunchedEffect(reading) { if (reading) suiteState.hide() else suiteState.show() }
 
-    NavigationSuiteScaffold(
-        modifier = modifier,
-        state = suiteState,
-        navigationSuiteItems = {
-            TopLevel.entries.forEach { tab ->
-                item(
-                    selected = tab == current,
-                    onClick = {
-                        // Re-selecting the current tab pops it back to its root.
-                        if (tab == current) stacks.getValue(tab).retainRoot() else current = tab
-                    },
-                    icon = { Icon(painterResource(tab.icon), contentDescription = null) },
-                    label = { Text(stringResource(tab.label)) },
-                )
-            }
-        },
-    ) {
-        val backStack = stacks.getValue(current)
-        NavDisplay(
-            backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
-            entryDecorators =
-                listOf(
-                    rememberSaveableStateHolderNavEntryDecorator(),
-                    rememberViewModelStoreNavEntryDecorator(),
-                ),
-            sceneStrategies = listOf(listDetail, SinglePaneSceneStrategy()),
-            entryProvider =
-                entryProvider {
-                    entry<BrowseKey>(metadata = listPane()) {
-                        BrowseRoute(
-                            onOpenManga = backStack::openManga,
-                            onOpenSearch = { query, section -> backStack.add(SearchKey(query, section?.name)) },
-                        )
-                    }
-                    entry<SearchKey>(metadata = listPane()) { key ->
-                        SearchRoute(
-                            args = SearchArgs(key.query, key.section?.let(BrowseSection::valueOf), key.tagId),
-                            onBack = { backStack.removeLastOrNull() },
-                            onOpenManga = backStack::openManga,
-                        )
-                    }
-                    entry<MangaKey>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
-                        MangaRoute(
-                            mangaId = key.mangaId,
-                            onBack = { backStack.removeLastOrNull() },
-                            onOpenTag = { backStack.add(SearchKey(tagId = it)) },
-                            onReadChapter = { chapter -> backStack.add(ReaderKey(key.mangaId, chapter.id)) },
-                        )
-                    }
-                    entry<ReaderKey> { key ->
-                        ReaderRoute(
-                            mangaId = key.mangaId,
-                            chapterId = key.chapterId,
-                            onBack = { backStack.removeLastOrNull() },
-                            // Chapter to chapter replaces the reader, so back still leads to the details.
-                            onOpenChapter = { chapterId ->
-                                backStack[backStack.lastIndex] =
-                                    ReaderKey(key.mangaId, chapterId)
+    // A manga's screens publish its cover; the whole shell (navigation bar included) wears it.
+    val covers = remember { CoverHolder() }
+    CompositionLocalProvider(LocalCoverHolder provides covers) {
+        CoverTheme(coverUrl = covers.current) {
+            NavigationSuiteScaffold(
+                modifier = modifier,
+                state = suiteState,
+                navigationSuiteItems = {
+                    TopLevel.entries.forEach { tab ->
+                        item(
+                            selected = tab == current,
+                            onClick = {
+                                // Re-selecting the current tab pops it back to its root.
+                                if (tab == current) stacks.getValue(tab).retainRoot() else current = tab
                             },
+                            icon = { Icon(painterResource(tab.icon), contentDescription = null) },
+                            label = { Text(stringResource(tab.label)) },
                         )
-                    }
-                    entry<LibraryKey>(metadata = listPane()) {
-                        PlaceholderScreen(R.string.tab_library, stringResource(R.string.placeholder_library))
-                    }
-                    entry<UpdatesKey>(metadata = listPane()) {
-                        PlaceholderScreen(R.string.tab_updates, stringResource(R.string.placeholder_updates))
-                    }
-                    entry<SettingsKey> {
-                        SettingsRoute(versionName = BuildConfig.VERSION_NAME)
                     }
                 },
-        )
+            ) {
+                val backStack = stacks.getValue(current)
+                NavDisplay(
+                    backStack = backStack,
+                    onBack = { backStack.removeLastOrNull() },
+                    entryDecorators =
+                        listOf(
+                            rememberSaveableStateHolderNavEntryDecorator(),
+                            rememberViewModelStoreNavEntryDecorator(),
+                        ),
+                    sceneStrategies = listOf(listDetail, SinglePaneSceneStrategy()),
+                    entryProvider =
+                        entryProvider {
+                            entry<BrowseKey>(metadata = listPane()) {
+                                BrowseRoute(
+                                    onOpenManga = backStack::openManga,
+                                    onOpenSearch = { query, section -> backStack.add(SearchKey(query, section?.name)) },
+                                )
+                            }
+                            entry<SearchKey>(metadata = listPane()) { key ->
+                                SearchRoute(
+                                    args = SearchArgs(key.query, key.section?.let(BrowseSection::valueOf), key.tagId),
+                                    onBack = { backStack.removeLastOrNull() },
+                                    onOpenManga = backStack::openManga,
+                                )
+                            }
+                            entry<MangaKey>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
+                                MangaRoute(
+                                    mangaId = key.mangaId,
+                                    onBack = { backStack.removeLastOrNull() },
+                                    onOpenTag = { backStack.add(SearchKey(tagId = it)) },
+                                    onReadChapter = { chapter -> backStack.add(ReaderKey(key.mangaId, chapter.id)) },
+                                )
+                            }
+                            entry<ReaderKey> { key ->
+                                ReaderRoute(
+                                    mangaId = key.mangaId,
+                                    chapterId = key.chapterId,
+                                    onBack = { backStack.removeLastOrNull() },
+                                    // Chapter to chapter replaces the reader, so back still leads to the details.
+                                    onOpenChapter = { chapterId ->
+                                        backStack[backStack.lastIndex] =
+                                            ReaderKey(key.mangaId, chapterId)
+                                    },
+                                )
+                            }
+                            entry<LibraryKey>(metadata = listPane()) {
+                                PlaceholderScreen(R.string.tab_library, stringResource(R.string.placeholder_library))
+                            }
+                            entry<UpdatesKey>(metadata = listPane()) {
+                                PlaceholderScreen(R.string.tab_updates, stringResource(R.string.placeholder_updates))
+                            }
+                            entry<SettingsKey> {
+                                SettingsRoute(versionName = BuildConfig.VERSION_NAME)
+                            }
+                        },
+                )
+            }
+        }
     }
 }
 

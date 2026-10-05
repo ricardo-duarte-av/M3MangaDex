@@ -15,7 +15,7 @@ import kotlinx.coroutines.Dispatchers
  */
 @Database(
     entities = [ChapterProgressEntity::class, MangaSettingsEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class M3MangaDexDatabase : RoomDatabase() {
@@ -37,6 +37,7 @@ abstract class M3MangaDexDatabase : RoomDatabase() {
             return builder
                 .setDriver(driver)
                 .setQueryCoroutineContext(Dispatchers.IO)
+                .addMigrations(*ALL_MIGRATIONS)
                 .build()
         }
     }

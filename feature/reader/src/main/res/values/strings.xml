@@ -10,6 +10,11 @@
     <string name="reader_mode_rtl">Right to left</string>
     <string name="reader_mode_vertical">Vertical</string>
     <string name="reader_mode_webtoon">Webtoon (long strip)</string>
+    <string name="reader_fit_auto">Fit: automatic</string>
+    <string name="reader_fit_screen">Fit to screen</string>
+    <string name="reader_fit_width">Fit to width</string>
+    <string name="reader_fit_height">Fit to height</string>
+    <string name="reader_crop_borders">Crop borders</string>
     <string name="reader_spreads">Two-page spreads on wide screens</string>
     <string name="reader_volume_keys">Volume keys turn pages</string>
     <string name="reader_failed">Couldn’t load this chapter.</string>

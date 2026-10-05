@@ -3,6 +3,8 @@ package pt.aguiarvieira.m3mangadex.core.data
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import pt.aguiarvieira.m3mangadex.core.database.ChapterProgressEntity
 import pt.aguiarvieira.m3mangadex.core.database.MangaSettingsEntity
 import pt.aguiarvieira.m3mangadex.core.database.ReadingDao
@@ -62,7 +64,34 @@ internal class DefaultReadingRepository
         override suspend fun setReaderMode(
             mangaId: String,
             mode: ReaderMode,
-        ) = dao.upsertSettings(MangaSettingsEntity(mangaId, mode.name))
+        ) = updateSettings(mangaId) { it.copy(readerMode = mode.name) }
+
+        override fun extraLanguages(mangaId: String): Flow<List<String>> =
+            dao
+                .settings(mangaId)
+                .map {
+                    it
+                        ?.extraLanguages
+                        ?.split(',')
+                        ?.filter(String::isNotBlank)
+                        .orEmpty()
+                }.distinctUntilChanged()
+
+        override suspend fun setExtraLanguages(
+            mangaId: String,
+            languages: List<String>,
+        ) = updateSettings(mangaId) { it.copy(extraLanguages = languages.joinToString(",").ifEmpty { null }) }
+
+        /** Changes one setting of a manga without clobbering the others in its row. */
+        private suspend fun updateSettings(
+            mangaId: String,
+            change: (MangaSettingsEntity) -> MangaSettingsEntity,
+        ) = settingsLock.withLock {
+            val current = dao.settingsNow(mangaId) ?: MangaSettingsEntity(mangaId, readerMode = null)
+            dao.upsertSettings(change(current))
+        }
+
+        private val settingsLock = Mutex()
     }
 
 private fun ChapterProgressEntity.toModel() =

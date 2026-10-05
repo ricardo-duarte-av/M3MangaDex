@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Languages
+import pt.aguiarvieira.m3mangadex.core.model.PageFit
 import pt.aguiarvieira.m3mangadex.core.model.UserPreferences
 import java.util.Locale
 import javax.inject.Inject
@@ -38,8 +39,23 @@ class PreferencesDataSource
                     dataSaver = prefs[DATA_SAVER] ?: false,
                     volumeKeyPaging = prefs[VOLUME_KEY_PAGING] ?: false,
                     doublePageSpreads = prefs[DOUBLE_PAGE_SPREADS] ?: true,
+                    pageFit = PageFit.entries.firstOrNull { it.name == prefs[PAGE_FIT] } ?: PageFit.Auto,
+                    cropBorders = prefs[CROP_BORDERS] ?: true,
+                    coverTheming = prefs[COVER_THEMING] ?: true,
                 )
             }
+
+        suspend fun setPageFit(fit: PageFit) {
+            dataStore.edit { it[PAGE_FIT] = fit.name }
+        }
+
+        suspend fun setCropBorders(enabled: Boolean) {
+            dataStore.edit { it[CROP_BORDERS] = enabled }
+        }
+
+        suspend fun setCoverTheming(enabled: Boolean) {
+            dataStore.edit { it[COVER_THEMING] = enabled }
+        }
 
         suspend fun setVolumeKeyPaging(enabled: Boolean) {
             dataStore.edit { it[VOLUME_KEY_PAGING] = enabled }
@@ -67,5 +83,8 @@ class PreferencesDataSource
             val DATA_SAVER = booleanPreferencesKey("data_saver")
             val VOLUME_KEY_PAGING = booleanPreferencesKey("volume_key_paging")
             val DOUBLE_PAGE_SPREADS = booleanPreferencesKey("double_page_spreads")
+            val PAGE_FIT = stringPreferencesKey("page_fit")
+            val CROP_BORDERS = booleanPreferencesKey("crop_borders")
+            val COVER_THEMING = booleanPreferencesKey("cover_theming")
         }
     }

@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -92,7 +93,8 @@ internal fun WebtoonReader(
             }
         }
     }
-    PreloadPages(urls, generation, current, onSize = { _, _, _ -> }, onFail = onPageFail)
+    // Never cropped: a webtoon's strip is continuous, trimming a page's margins would misalign it.
+    PreloadPages(urls, generation, current, cropBorders = false, onSize = { _, _, _ -> }, onFail = onPageFail)
 
     LazyColumn(
         state = list,
@@ -143,7 +145,9 @@ private fun StripPage(
         PageFailed(page, onRetry, modifier.height(PLACEHOLDER_HEIGHT))
         return
     }
-    val painter = rememberAsyncImagePainter(model = url, onError = { onFail() })
+    val context = LocalContext.current
+    val request = remember(url) { pageRequest(context, url, cropBorders = false).build() }
+    val painter = rememberAsyncImagePainter(model = request, onError = { onFail() })
     val state by painter.state.collectAsStateWithLifecycle()
     when (state) {
         is AsyncImagePainter.State.Success -> {
