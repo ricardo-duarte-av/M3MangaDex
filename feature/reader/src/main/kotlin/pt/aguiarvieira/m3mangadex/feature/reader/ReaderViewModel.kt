@@ -15,7 +15,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import pt.aguiarvieira.m3mangadex.core.auth.AuthRepository
+import pt.aguiarvieira.m3mangadex.core.auth.Session
 import pt.aguiarvieira.m3mangadex.core.data.ChapterLanguages
+import pt.aguiarvieira.m3mangadex.core.data.LibraryRepository
 import pt.aguiarvieira.m3mangadex.core.data.MangaRepository
 import pt.aguiarvieira.m3mangadex.core.data.ReadingRepository
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
@@ -69,6 +72,8 @@ class ReaderViewModel
         private val reading: ReadingRepository,
         private val chapterLanguages: ChapterLanguages,
         private val preferences: PreferencesDataSource,
+        private val auth: AuthRepository,
+        private val library: LibraryRepository,
     ) : ViewModel() {
         private val _state = MutableStateFlow(ReaderUiState())
         val state: StateFlow<ReaderUiState> = _state.asStateFlow()
@@ -136,7 +141,20 @@ class ReaderViewModel
             val chapter = _state.value.chapter ?: return
             val count = server?.pageCount ?: return
             viewModelScope.launch { reading.saveProgress(mangaId, chapter, page.coerceIn(0, count - 1), count) }
+            // Reaching the last page marks the chapter read on MangaDex too (and in its history).
+            if (page >= count - 1 && !syncedRead && auth.session.value is Session.LoggedIn) {
+                syncedRead = true
+                viewModelScope.launch {
+                    if (attempt { library.setRead(mangaId, listOf(chapter.id), read = true) } ==
+                        null
+                    ) {
+                        syncedRead = false
+                    }
+                }
+            }
         }
+
+        private var syncedRead = false
 
         /**
          * A page image failed. The node may have expired or broken: ask for a fresh one (at most

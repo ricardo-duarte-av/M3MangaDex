@@ -19,6 +19,9 @@ interface ReadingDao {
     @Upsert
     suspend fun upsertProgress(progress: ChapterProgressEntity)
 
+    @Query("DELETE FROM chapter_progress WHERE chapterId = :chapterId")
+    suspend fun deleteProgress(chapterId: String)
+
     @Query("SELECT readerMode FROM manga_settings WHERE mangaId = :mangaId")
     fun readerMode(mangaId: String): Flow<String?>
 

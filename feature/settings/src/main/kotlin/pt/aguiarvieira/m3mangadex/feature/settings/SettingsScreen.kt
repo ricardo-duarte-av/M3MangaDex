@@ -18,6 +18,7 @@ import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import pt.aguiarvieira.m3mangadex.core.auth.Session
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.Loading
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Languages
@@ -39,12 +41,17 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.R as DsR
 @Composable
 fun SettingsRoute(
     versionName: String,
+    onLogin: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val session by viewModel.session.collectAsStateWithLifecycle()
     SettingsScreen(
         preferences = state,
+        session = session,
+        onLogin = onLogin,
+        onLogout = viewModel::logout,
         versionName = versionName,
         onToggleLanguage = viewModel::toggleLanguage,
         onToggleRating = viewModel::toggleRating,
@@ -61,6 +68,9 @@ fun SettingsRoute(
 @Composable
 fun SettingsScreen(
     preferences: UserPreferences?,
+    session: Session,
+    onLogin: () -> Unit,
+    onLogout: () -> Unit,
     versionName: String,
     onToggleLanguage: (String) -> Unit,
     onToggleRating: (ContentRating) -> Unit,
@@ -90,6 +100,8 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = padding.calculateTopPadding(), bottom = 24.dp)
         ) {
+            item { Heading(R.string.settings_account) }
+            item { AccountItem(session, onLogin, onLogout) }
             item { Heading(R.string.settings_languages) }
             item { Hint(R.string.settings_languages_hint) }
             item {
@@ -173,6 +185,36 @@ fun SettingsScreen(
                     trailingContent = { Icon(painterResource(DsR.drawable.ic_open_in_new), contentDescription = null) },
                 ) { Text(stringResource(R.string.settings_source)) }
             }
+        }
+    }
+}
+
+@Composable
+private fun AccountItem(
+    session: Session,
+    onLogin: () -> Unit,
+    onLogout: () -> Unit,
+) {
+    when (session) {
+        Session.LoggedOut -> {
+            ListItem(
+                onClick = onLogin,
+                supportingContent = { Text(stringResource(R.string.settings_login_hint)) },
+            ) { Text(stringResource(R.string.settings_login)) }
+        }
+
+        is Session.Expired -> {
+            ListItem(
+                onClick = onLogin,
+                supportingContent = { Text(stringResource(R.string.settings_session_expired)) },
+            ) { Text(stringResource(R.string.settings_logged_in_as, session.username)) }
+        }
+
+        is Session.LoggedIn -> {
+            ListItem(
+                trailingContent = { TextButton(onClick = onLogout) { Text(stringResource(R.string.settings_logout)) } },
+                supportingContent = { Text(stringResource(R.string.settings_sync_hint)) },
+            ) { Text(stringResource(R.string.settings_logged_in_as, session.username)) }
         }
     }
 }

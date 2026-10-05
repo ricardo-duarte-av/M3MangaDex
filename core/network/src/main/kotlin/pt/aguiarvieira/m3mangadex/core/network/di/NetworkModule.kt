@@ -6,10 +6,15 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
+import pt.aguiarvieira.m3mangadex.core.network.AccessTokenProvider
 import pt.aguiarvieira.m3mangadex.core.network.AtHomeReportInterceptor
+import pt.aguiarvieira.m3mangadex.core.network.AuthInterceptor
 import pt.aguiarvieira.m3mangadex.core.network.MangaDexApi
+import pt.aguiarvieira.m3mangadex.core.network.MangaDexAuthApi
+import pt.aguiarvieira.m3mangadex.core.network.MangaDexUserApi
 import pt.aguiarvieira.m3mangadex.core.network.RateLimitInterceptor
 import pt.aguiarvieira.m3mangadex.core.network.RateLimiter
+import pt.aguiarvieira.m3mangadex.core.network.TokenAuthenticator
 import pt.aguiarvieira.m3mangadex.core.network.UserAgentInterceptor
 import java.util.concurrent.TimeUnit
 import javax.inject.Qualifier
@@ -23,7 +28,7 @@ data class UserAgent(
     val value: String,
 )
 
-/** For api.mangadex.org: paced, and the only client that will ever carry credentials (M4). */
+/** For api.mangadex.org: paced, and the only client that carries credentials (on [Authenticated] requests). */
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class ApiClient
@@ -65,12 +70,19 @@ object NetworkModule {
     @Provides
     @Singleton
     @ApiClient
-    fun apiClient(base: OkHttpClient): OkHttpClient =
+    fun apiClient(
+        base: OkHttpClient,
+        tokens: AccessTokenProvider,
+    ): OkHttpClient =
         base
             .newBuilder()
             .addInterceptor(
                 RateLimitInterceptor(RateLimiter(REQUESTS_PER_SECOND, SECOND_NANOS), limits = { it.host == API_HOST }),
-            ).build()
+            )
+            // After the limiter, so a retried request is paced too; the token goes on last.
+            .addInterceptor(AuthInterceptor(tokens))
+            .authenticator(TokenAuthenticator(tokens))
+            .build()
 
     @Provides
     @Singleton
@@ -86,4 +98,19 @@ object NetworkModule {
         @ApiClient client: OkHttpClient,
         json: Json,
     ): MangaDexApi = MangaDexApi(client, json)
+
+    @Provides
+    @Singleton
+    fun mangaDexUserApi(
+        @ApiClient client: OkHttpClient,
+        json: Json,
+    ): MangaDexUserApi = MangaDexUserApi(client, json)
+
+    /** The auth server: the plain client, never the API one (no token, no API rate limit). */
+    @Provides
+    @Singleton
+    fun mangaDexAuthApi(
+        base: OkHttpClient,
+        json: Json,
+    ): MangaDexAuthApi = MangaDexAuthApi(base, json)
 }

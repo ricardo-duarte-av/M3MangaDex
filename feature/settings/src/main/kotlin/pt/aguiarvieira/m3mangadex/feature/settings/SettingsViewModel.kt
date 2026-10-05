@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import pt.aguiarvieira.m3mangadex.core.auth.AuthRepository
+import pt.aguiarvieira.m3mangadex.core.auth.Session
+import pt.aguiarvieira.m3mangadex.core.data.LibraryRepository
 import pt.aguiarvieira.m3mangadex.core.datastore.PreferencesDataSource
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.UserPreferences
@@ -17,7 +20,16 @@ class SettingsViewModel
     @Inject
     constructor(
         private val preferences: PreferencesDataSource,
+        private val auth: AuthRepository,
+        private val library: LibraryRepository,
     ) : ViewModel() {
+        val session: StateFlow<Session> = auth.session
+
+        fun logout() {
+            auth.logout()
+            library.clear()
+        }
+
         val state: StateFlow<UserPreferences?> =
             preferences.preferences.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
 

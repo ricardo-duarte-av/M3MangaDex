@@ -8,6 +8,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import pt.aguiarvieira.m3mangadex.core.auth.Session
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.M3MangaDexTheme
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.UserPreferences
@@ -25,6 +26,9 @@ class SettingsScreenshotTest {
             M3MangaDexTheme(darkTheme = false, dynamicColor = false) {
                 SettingsScreen(
                     preferences,
+                    session = Session.LoggedIn("daedric7"),
+                    onLogin = {},
+                    onLogout = {},
                     versionName = "0.1.0",
                     onToggleLanguage = {},
                     onToggleRating = {},

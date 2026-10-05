@@ -22,6 +22,9 @@ interface ReadingRepository {
         pageCount: Int,
     )
 
+    /** Forgets [chapterId]'s progress: it reads as unread again. */
+    suspend fun clearProgress(chapterId: String)
+
     /** The mode the user picked for [mangaId], or null to use [ReaderMode.defaultFor]. */
     fun readerMode(mangaId: String): Flow<ReaderMode?>
 

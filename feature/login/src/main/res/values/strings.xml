@@ -1,0 +1,17 @@
+<resources>
+    <string name="login_title">Log in to MangaDex</string>
+    <string name="login_why">MangaDex doesn’t let apps use a normal login yet. Instead, each account creates its own “personal API client” and logs in with it. You only do this once.</string>
+    <string name="login_steps">1. On mangadex.org, open Settings → API Clients.\n2. Create a client (any name). Some are approved at once; others wait for MangaDex staff.\n3. Copy its client ID and secret here, with your username and password.</string>
+    <string name="login_open_settings">Open MangaDex settings</string>
+    <string name="login_client_id">Client ID</string>
+    <string name="login_client_secret">Client secret</string>
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="login_submit">Log in</string>
+    <string name="login_expired">Your session ended. Enter your password to log back in.</string>
+    <string name="login_privacy">Your password is sent only to MangaDex and never stored. The app keeps an encrypted login token on this device.</string>
+    <string name="login_error_credentials">MangaDex didn’t accept that username and password. If the account is new, confirm its email first.</string>
+    <string name="login_error_client">The client ID or secret is wrong, or the client isn’t approved yet (check Settings → API Clients on MangaDex). A personal client only works for the account that created it.</string>
+    <string name="login_error_attempts">Too many attempts. Wait a while and try again.</string>
+    <string name="login_error_offline">Couldn’t reach MangaDex. Check your connection.</string>
+</resources>

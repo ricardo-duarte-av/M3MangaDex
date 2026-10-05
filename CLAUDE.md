@@ -84,6 +84,14 @@ Releases are cut by pushing a `v<versionName>` tag. See `RELEASE.md`.
   15 minutes. Don't store the password. Keep it behind `AuthProvider` so PKCE can replace it later.
 - Credit scanlation groups. Default content ratings are safe and suggestive.
 
+## Account
+
+- `core:auth`: `AuthRepository` is the session and the `AccessTokenProvider` for the API client. Mark user requests
+  with `.authenticated()` (`ApiCaller.kt`). Only those carry the token.
+- Live tests: development credentials are in `~/m3mangadex-signing/mangadex-test.env` (never commit or print them).
+  Login is limited to about 30 per hour, so don't retry in loops. Clean up test state (status, follow, read markers)
+  afterwards.
+
 ## Checks
 
 ```bash

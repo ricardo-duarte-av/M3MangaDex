@@ -1,0 +1,8 @@
+<resources>
+    <string name="updates_title">Updates</string>
+    <string name="updates_logged_out_title">New chapters, as they come out</string>
+    <string name="updates_logged_out_body">Log in to see the latest chapters of the manga you follow on MangaDex.</string>
+    <string name="updates_empty">No new chapters in your languages. Follow manga (add them to your library) to see their new chapters here.</string>
+    <string name="updates_chapter">Ch. %1$s</string>
+    <string name="updates_oneshot">Oneshot</string>
+</resources>

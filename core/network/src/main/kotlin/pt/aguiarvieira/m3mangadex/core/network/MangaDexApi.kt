@@ -1,18 +1,11 @@
 package pt.aguiarvieira.m3mangadex.core.network
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import okhttp3.Call
-import okhttp3.Callback
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.Response
 import pt.aguiarvieira.m3mangadex.core.model.AtHomeServer
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
@@ -26,24 +19,22 @@ import pt.aguiarvieira.m3mangadex.core.network.dto.AtHomeDto
 import pt.aguiarvieira.m3mangadex.core.network.dto.ChapterDto
 import pt.aguiarvieira.m3mangadex.core.network.dto.CollectionDto
 import pt.aguiarvieira.m3mangadex.core.network.dto.EntityDto
-import pt.aguiarvieira.m3mangadex.core.network.dto.ErrorResponseDto
 import pt.aguiarvieira.m3mangadex.core.network.dto.MangaDto
 import pt.aguiarvieira.m3mangadex.core.network.dto.StatisticsDto
 import pt.aguiarvieira.m3mangadex.core.network.dto.TagDto
 import pt.aguiarvieira.m3mangadex.core.network.dto.toModel
-import java.io.IOException
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
  * The public (unauthenticated) MangaDex API. Requests go through [client], which paces them and
  * sets the User-Agent; nothing here ever sends credentials.
  */
 class MangaDexApi(
-    private val client: OkHttpClient,
-    private val json: Json,
+    client: OkHttpClient,
+    json: Json,
     private val baseUrl: HttpUrl = BASE_URL,
 ) {
+    private val caller = ApiCaller(client, json)
+
     suspend fun searchManga(
         filter: MangaFilter,
         offset: Int,
@@ -114,6 +105,20 @@ class MangaDexApi(
             CollectionDto.serializer(TagDto.serializer())
         ).data.map { it.toModel() }
 
+    /** Several manga by id (library, feed covers), in pages of at most [IDS_PER_REQUEST]. */
+    suspend fun mangaByIds(ids: Collection<String>): List<Manga> =
+        ids.distinct().chunked(IDS_PER_REQUEST).flatMap { chunk ->
+            val url =
+                url("manga") {
+                    addQueryParameter("limit", chunk.size.toString())
+                    array("ids", chunk)
+                    array("includes", listOf("cover_art"))
+                    // The user already chose these; show them whatever their rating.
+                    array("contentRating", ContentRating.entries.map { it.apiValue })
+                }
+            get(url, CollectionDto.serializer(MangaDto.serializer())).data.map { it.toModel() }
+        }
+
     suspend fun chapter(id: String): Chapter {
         val url = url("chapter/$id") { array("includes", listOf("scanlation_group")) }
         return get(url, EntityDto.serializer(ChapterDto.serializer())).data.toModel()
@@ -148,55 +153,15 @@ class MangaDexApi(
     private suspend fun <T> get(
         url: HttpUrl,
         deserializer: DeserializationStrategy<T>,
-    ): T {
-        val response = client.newCall(Request.Builder().url(url).build()).await()
-        return withContext(Dispatchers.IO) {
-            response.use {
-                val body = it.body.string()
-                if (!it.isSuccessful) throw MangaDexException(it.code, errorMessage(it.code, body))
-                try {
-                    json.decodeFromString(deserializer, body)
-                } catch (e: SerializationException) {
-                    throw IOException("Unexpected response from ${url.encodedPath}", e)
-                }
-            }
-        }
-    }
-
-    private fun errorMessage(
-        code: Int,
-        body: String,
-    ): String {
-        val error =
-            runCatching { json.decodeFromString(ErrorResponseDto.serializer(), body) }
-                .getOrNull()
-                ?.errors
-                ?.firstOrNull()
-        return error?.detail ?: error?.title ?: "HTTP $code"
-    }
+    ): T = caller.send(Request.Builder().url(url).build(), deserializer)
 
     companion object {
         val BASE_URL = "https://api.mangadex.org/".toHttpUrl()
 
         /** The API's paging cap: offset + limit may not exceed it. */
         const val MAX_RESULTS = 10_000
+
+        /** MangaDex's `limit` ceiling for collections. */
+        const val IDS_PER_REQUEST = 100
     }
 }
-
-private suspend fun Call.await(): Response =
-    suspendCancellableCoroutine { continuation ->
-        continuation.invokeOnCancellation { cancel() }
-        enqueue(
-            object : Callback {
-                override fun onFailure(
-                    call: Call,
-                    e: IOException,
-                ) = continuation.resumeWithException(e)
-
-                override fun onResponse(
-                    call: Call,
-                    response: Response,
-                ) = continuation.resume(response) { _, value, _ -> value.close() }
-            },
-        )
-    }

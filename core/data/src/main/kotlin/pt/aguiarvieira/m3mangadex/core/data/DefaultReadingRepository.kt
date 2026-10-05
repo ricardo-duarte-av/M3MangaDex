@@ -54,6 +54,8 @@ internal class DefaultReadingRepository
             )
         }
 
+        override suspend fun clearProgress(chapterId: String) = dao.deleteProgress(chapterId)
+
         override fun readerMode(mangaId: String): Flow<ReaderMode?> =
             dao
                 .readerMode(mangaId)

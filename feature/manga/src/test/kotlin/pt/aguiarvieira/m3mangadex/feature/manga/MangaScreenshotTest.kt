@@ -16,6 +16,7 @@ import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaStats
 import pt.aguiarvieira.m3mangadex.core.model.PublicationStatus
+import pt.aguiarvieira.m3mangadex.core.model.ReadingStatus
 import pt.aguiarvieira.m3mangadex.core.model.ScanlationGroup
 import pt.aguiarvieira.m3mangadex.core.model.Tag
 import pt.aguiarvieira.m3mangadex.core.model.TagGroup
@@ -53,7 +54,21 @@ class MangaScreenshotTest {
         compose.mainClock.autoAdvance = false
         compose.setContent {
             M3MangaDexTheme(darkTheme = true, dynamicColor = false) {
-                MangaScreen(state, SnackbarHostState(), onBack = {}, onRetry = {}, onOpenTag = {}, onOpenChapter = {}, reading = reading)
+                MangaScreen(
+                    state = state,
+                    snackbar = SnackbarHostState(),
+                    onBack = {},
+                    onRetry = {},
+                    onOpenTag = {},
+                    onOpenChapter = {},
+                    reading = reading,
+                    otherLanguages = OtherLanguages(available = listOf("es-la", "pl"), selected = setOf("pl")),
+                    onToggleLanguage = {},
+                    account = AccountState(loggedIn = true, status = ReadingStatus.Reading, following = true),
+                    onSetStatus = {},
+                    onToggleFollow = {},
+                    onToggleRead = {},
+                )
             }
         }
         compose.onRoot().captureRoboImage("src/test/screenshots/manga_loaded.png")

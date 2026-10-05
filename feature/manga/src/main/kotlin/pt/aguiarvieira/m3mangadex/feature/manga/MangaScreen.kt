@@ -23,9 +23,14 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -39,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +73,7 @@ import kotlinx.coroutines.launch
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.ErrorMessage
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.Loading
 import pt.aguiarvieira.m3mangadex.core.designsystem.component.MangaCover
+import pt.aguiarvieira.m3mangadex.core.designsystem.component.label
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.PublishCover
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
 import pt.aguiarvieira.m3mangadex.core.model.ChapterProgress
@@ -76,6 +83,7 @@ import pt.aguiarvieira.m3mangadex.core.model.Languages
 import pt.aguiarvieira.m3mangadex.core.model.Manga
 import pt.aguiarvieira.m3mangadex.core.model.MangaStats
 import pt.aguiarvieira.m3mangadex.core.model.PublicationStatus
+import pt.aguiarvieira.m3mangadex.core.model.ReadingStatus
 import pt.aguiarvieira.m3mangadex.core.model.coverUrl
 import pt.aguiarvieira.m3mangadex.core.designsystem.R as DsR
 
@@ -96,10 +104,13 @@ fun MangaRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val reading by viewModel.reading.collectAsStateWithLifecycle()
     val otherLanguages by viewModel.otherLanguages.collectAsStateWithLifecycle()
+    val account by viewModel.account.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val readerComing = stringResource(R.string.manga_reader_coming)
+    val syncFailed = stringResource(R.string.manga_sync_failed)
+    LaunchedEffect(account.syncFailures) { if (account.syncFailures > 0) snackbar.showSnackbar(syncFailed) }
     // The whole app, navigation bar included, takes on the cover's colours while this is open.
     PublishCover((state as? MangaUiState.Loaded)?.manga?.coverUrl())
     MangaScreen(
@@ -107,6 +118,10 @@ fun MangaRoute(
         reading = reading,
         otherLanguages = otherLanguages,
         onToggleLanguage = viewModel::toggleLanguage,
+        account = account,
+        onSetStatus = viewModel::setStatus,
+        onToggleFollow = viewModel::toggleFollow,
+        onToggleRead = viewModel::toggleRead,
         snackbar = snackbar,
         onBack = onBack,
         onRetry = viewModel::retry,
@@ -146,10 +161,14 @@ fun MangaScreen(
     onRetry: () -> Unit,
     onOpenTag: (String) -> Unit,
     onOpenChapter: (Chapter) -> Unit,
+    reading: ReadingState,
+    otherLanguages: OtherLanguages,
+    onToggleLanguage: (String) -> Unit,
+    account: AccountState,
+    onSetStatus: (ReadingStatus?) -> Unit,
+    onToggleFollow: () -> Unit,
+    onToggleRead: (Chapter) -> Unit,
     modifier: Modifier = Modifier,
-    reading: ReadingState = ReadingState(),
-    otherLanguages: OtherLanguages = OtherLanguages(),
-    onToggleLanguage: (String) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -209,15 +228,17 @@ fun MangaScreen(
                             )
                         }
                     }
+                    if (account.loggedIn) item(key = "account") { AccountRow(account, onSetStatus, onToggleFollow) }
                     item(key = "description") { Description(state.manga.displayDescription(state.languages)) }
                     item(key = "tags") { Tags(state.manga, onOpenTag) }
                     chapters(
                         state.chapters,
                         state.languages,
-                        reading.progress,
+                        reading,
                         otherLanguages,
                         onToggleLanguage,
                         onOpenChapter,
+                        onToggleRead,
                         onRetry
                     )
                 }
@@ -345,10 +366,11 @@ private fun Tags(
 private fun LazyListScope.chapters(
     state: ChaptersState,
     languages: List<String>,
-    progress: Map<String, ChapterProgress>,
+    reading: ReadingState,
     otherLanguages: OtherLanguages,
     onToggleLanguage: (String) -> Unit,
     onOpenChapter: (Chapter) -> Unit,
+    onToggleRead: (Chapter) -> Unit,
     onRetry: () -> Unit,
 ) {
     when (state) {
@@ -391,7 +413,7 @@ private fun LazyListScope.chapters(
                     )
                 }
             }
-            state.volumes.forEach { group -> volume(group, languages.size > 1, progress, onOpenChapter) }
+            state.volumes.forEach { group -> volume(group, languages.size > 1, reading, onOpenChapter, onToggleRead) }
         }
     }
 }
@@ -400,8 +422,9 @@ private fun LazyListScope.chapters(
 private fun LazyListScope.volume(
     group: VolumeGroup,
     showLanguage: Boolean,
-    progress: Map<String, ChapterProgress>,
+    reading: ReadingState,
     onOpenChapter: (Chapter) -> Unit,
+    onToggleRead: (Chapter) -> Unit,
 ) {
     stickyHeader(key = "volume-${group.volume}") {
         Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
@@ -415,7 +438,84 @@ private fun LazyListScope.volume(
         }
     }
     items(group.chapters, key = { "chapter-${it.id}" }) { chapter ->
-        ChapterRow(chapter, progress[chapter.id], showLanguage, onClick = { onOpenChapter(chapter) })
+        ChapterRow(
+            chapter = chapter,
+            progress = reading.progress[chapter.id],
+            read = chapter.id in reading.read,
+            showLanguage = showLanguage,
+            onClick = { onOpenChapter(chapter) },
+            onLongClick = { onToggleRead(chapter) },
+        )
+    }
+}
+
+/** Library status (a menu) and the follow bell, for logged-in users. */
+@Composable
+private fun AccountRow(
+    account: AccountState,
+    onSetStatus: (ReadingStatus?) -> Unit,
+    onToggleFollow: () -> Unit,
+) {
+    var menu by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(Modifier.weight(1f)) {
+            FilledTonalButton(onClick = { menu = true }, modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    painterResource(
+                        if (account.status ==
+                            null
+                        ) {
+                            DsR.drawable.ic_library_add
+                        } else {
+                            DsR.drawable.ic_bookmark
+                        }
+                    ),
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp).size(18.dp),
+                )
+                Text(account.status?.let { stringResource(it.label) } ?: stringResource(R.string.manga_add_to_library))
+            }
+            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                ReadingStatus.entries.forEach { status ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(status.label)) },
+                        leadingIcon = {
+                            if (status ==
+                                account.status
+                            ) {
+                                Icon(painterResource(DsR.drawable.ic_check), contentDescription = null)
+                            }
+                        },
+                        onClick = {
+                            menu = false
+                            onSetStatus(status)
+                        },
+                    )
+                }
+                if (account.status != null) {
+                    HorizontalDivider()
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.manga_remove_from_library)) },
+                        onClick = {
+                            menu = false
+                            onSetStatus(null)
+                        },
+                    )
+                }
+            }
+        }
+        FilledTonalIconToggleButton(checked = account.following, onCheckedChange = { onToggleFollow() }) {
+            Icon(
+                painterResource(
+                    if (account.following) DsR.drawable.ic_notifications else DsR.drawable.ic_notifications_none
+                ),
+                stringResource(if (account.following) R.string.manga_unfollow else R.string.manga_follow),
+            )
+        }
     }
 }
 
@@ -455,8 +555,10 @@ private fun OtherLanguagesRow(
 private fun ChapterRow(
     chapter: Chapter,
     progress: ChapterProgress?,
+    read: Boolean,
     showLanguage: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
 ) {
     val number =
         chapter.number?.let { stringResource(R.string.manga_chapter, it) } ?: stringResource(R.string.manga_oneshot)
@@ -478,12 +580,14 @@ private fun ChapterRow(
             whenText,
             stringResource(R.string.manga_external).takeIf { chapter.isExternal },
             progress
-                ?.takeUnless { it.isRead }
+                ?.takeUnless { read || it.isRead }
                 ?.let { stringResource(R.string.manga_page_progress, it.page + 1, it.pageCount) },
         ).joinToString(" · ")
     ListItem(
         onClick = onClick,
-        modifier = Modifier.alpha(if (progress?.isRead == true) READ_ALPHA else 1f),
+        onLongClick = onLongClick,
+        onLongClickLabel = stringResource(if (read) R.string.manga_mark_unread else R.string.manga_mark_read),
+        modifier = Modifier.alpha(if (read) READ_ALPHA else 1f),
         supportingContent = { Text(supporting, maxLines = 2, overflow = TextOverflow.Ellipsis) },
         trailingContent =
             if (chapter.isExternal) {

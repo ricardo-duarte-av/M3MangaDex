@@ -1,5 +1,12 @@
 <resources>
     <string name="settings_title">Settings</string>
+    <string name="settings_account">MangaDex account</string>
+    <string name="settings_login">Log in</string>
+    <string name="settings_login_hint">Sync your library, follows and read chapters with MangaDex.</string>
+    <string name="settings_logged_in_as">Logged in as %1$s</string>
+    <string name="settings_logout">Log out</string>
+    <string name="settings_sync_hint">Library, follows and read chapters stay in sync with MangaDex.</string>
+    <string name="settings_session_expired">Session ended. Tap to log back in.</string>
     <string name="settings_languages">Chapter languages</string>
     <string name="settings_languages_hint">Chapters are listed in these languages, and titles use them when they can. At least one stays selected.</string>
     <string name="settings_content">Content rating</string>

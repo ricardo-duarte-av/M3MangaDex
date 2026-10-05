@@ -1,5 +1,6 @@
 package pt.aguiarvieira.m3mangadex.core.network.dto
 
+import kotlinx.serialization.json.Json
 import pt.aguiarvieira.m3mangadex.core.model.Chapter
 import pt.aguiarvieira.m3mangadex.core.model.ContentRating
 import pt.aguiarvieira.m3mangadex.core.model.Demographic
@@ -58,6 +59,16 @@ internal fun ChapterDto.toModel(): Chapter =
                 .filter { it.type == "scanlation_group" }
                 .map { ScanlationGroup(it.id, it.string("name") ?: "", it.boolean("official")) },
     )
+
+/** The manga a feed chapter belongs to, when it was included (`includes[]=manga`). */
+internal fun ChapterDto.includedManga(json: Json): Manga? {
+    val relation = relationships.firstOrNull { it.type == "manga" && it.attributes != null } ?: return null
+    val attributes =
+        runCatching {
+            json.decodeFromJsonElement(MangaAttributesDto.serializer(), relation.attributes!!)
+        }.getOrNull()
+    return attributes?.let { MangaDto(relation.id, it).toModel() }
+}
 
 internal fun MangaStatisticsDto.toModel() = MangaStats(follows = follows, rating = rating?.bayesian)
 

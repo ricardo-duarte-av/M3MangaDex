@@ -161,7 +161,35 @@ Original plan:
 - Optional "theme from current page" in the reader, throttled and defaulting to off.
 - A settings toggle: off, cover, or cover+page. Style is `PaletteStyle.TonalSpot`, for the same hue-fidelity reason documented in jellymusic.
 
-### M4 — Authentication & sync
+### M4 — Authentication & sync ✅ (v0.4.x)
+
+Done:
+- `core:auth`:
+  - `AuthRepository`: password grant for personal clients, plus refresh 1 minute before expiry or
+    after a 401, serialised so several requests trigger one refresh.
+  - When MangaDex rejects the refresh token, the session becomes `Session.Expired` and the user is
+    asked for the password again with the client pre-filled.
+- The session is stored AES-GCM-encrypted under an Android Keystore key, in `noBackupFilesDir`. The
+  password is never stored.
+- `Authenticated` request tag: only user endpoints get `Authorization`, as `AuthInterceptorTest` checks.
+- Library tab (status filter chips), Updates tab (follows feed, opens the reader) and a login screen
+  with client-setup help. Settings has an account section.
+- Details:
+  - A status menu (choosing a status also follows the title, as on the site) and a follow bell.
+  - Long-press a chapter to mark it read or unread here and on MangaDex.
+  - Chapters read on MangaDex show as read, and "Continue" picks up after them.
+  - Failed sync rolls back and shows a snackbar.
+- The reader marks a chapter read on MangaDex when you reach its last page.
+- MangaDex currently rejects `updateHistory=true` on read markers ("Persistent history is
+  temporarily disabled"), so the app doesn't send it.
+
+Tested end to end with a development account: login, a persisted session across restarts, the
+status, follow and read round trips in both directions, Library and Updates.
+
+Not done: merging an anonymous local library into follows on login. The app had no local library
+before M4 (only reading progress, which is kept and shown alongside MangaDex's markers).
+
+Original plan:
 - `core:auth`:
   - `AuthProvider` interface with a `PersonalClientAuthProvider` implementation (password grant).
   - Token manager with a mutex around refresh and an OkHttp `Authenticator` that refreshes on 401.

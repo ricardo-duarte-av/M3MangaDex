@@ -47,11 +47,14 @@ import pt.aguiarvieira.m3mangadex.core.designsystem.theme.CoverHolder
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.CoverTheme
 import pt.aguiarvieira.m3mangadex.core.designsystem.theme.LocalCoverHolder
 import pt.aguiarvieira.m3mangadex.feature.browse.BrowseRoute
+import pt.aguiarvieira.m3mangadex.feature.library.LibraryRoute
+import pt.aguiarvieira.m3mangadex.feature.login.LoginRoute
 import pt.aguiarvieira.m3mangadex.feature.manga.MangaRoute
 import pt.aguiarvieira.m3mangadex.feature.reader.ReaderRoute
 import pt.aguiarvieira.m3mangadex.feature.search.SearchArgs
 import pt.aguiarvieira.m3mangadex.feature.search.SearchRoute
 import pt.aguiarvieira.m3mangadex.feature.settings.SettingsRoute
+import pt.aguiarvieira.m3mangadex.feature.updates.UpdatesRoute
 
 @Serializable data object BrowseKey : NavKey
 
@@ -71,6 +74,8 @@ import pt.aguiarvieira.m3mangadex.feature.settings.SettingsRoute
 @Serializable data class MangaKey(
     val mangaId: String,
 ) : NavKey
+
+@Serializable data object LoginKey : NavKey
 
 /** Full screen, over everything: the navigation bar hides while it's on top. */
 @Serializable data class ReaderKey(
@@ -173,13 +178,30 @@ fun M3MangaDexApp(modifier: Modifier = Modifier) {
                                 )
                             }
                             entry<LibraryKey>(metadata = listPane()) {
-                                PlaceholderScreen(R.string.tab_library, stringResource(R.string.placeholder_library))
+                                LibraryRoute(onOpenManga = backStack::openManga, onLogin = { backStack.add(LoginKey) })
                             }
-                            entry<UpdatesKey>(metadata = listPane()) {
-                                PlaceholderScreen(R.string.tab_updates, stringResource(R.string.placeholder_updates))
+                            entry<UpdatesKey> {
+                                UpdatesRoute(
+                                    onReadChapter = {
+                                        mangaId,
+                                        chapterId,
+                                        ->
+                                        backStack.add(ReaderKey(mangaId, chapterId))
+                                    },
+                                    onLogin = { backStack.add(LoginKey) },
+                                )
                             }
                             entry<SettingsKey> {
-                                SettingsRoute(versionName = BuildConfig.VERSION_NAME)
+                                SettingsRoute(
+                                    versionName = BuildConfig.VERSION_NAME,
+                                    onLogin = { backStack.add(LoginKey) }
+                                )
+                            }
+                            entry<LoginKey> {
+                                LoginRoute(
+                                    onBack = { backStack.removeLastOrNull() },
+                                    onLoggedIn = { backStack.remove(LoginKey) },
+                                )
                             }
                         },
                 )
@@ -219,29 +241,3 @@ private fun listPane() =
             }
         },
     )
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun PlaceholderScreen(
-    @StringRes title: Int,
-    body: String,
-    modifier: Modifier = Modifier,
-) {
-    Scaffold(
-        modifier = modifier,
-        topBar = { MediumFlexibleTopAppBar(title = { Text(stringResource(title)) }) },
-    ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                body,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
-}

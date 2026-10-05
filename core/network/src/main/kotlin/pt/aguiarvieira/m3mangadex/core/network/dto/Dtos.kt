@@ -1,6 +1,7 @@
 package pt.aguiarvieira.m3mangadex.core.network.dto
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -138,6 +139,49 @@ internal data class ImageReportDto(
     val bytes: Long,
     val duration: Long,
     val cached: Boolean,
+)
+
+@Serializable
+internal data class StatusesDto(
+    val statuses: Map<String, String?> = emptyMap(),
+)
+
+@Serializable
+internal data class StatusDto(
+    val status: String? = null,
+)
+
+@Serializable
+internal data class ReadMarkersDto(
+    val data: List<String> = emptyList(),
+)
+
+@Serializable
+internal data class ReadMarkersUpdateDto(
+    val chapterIdsRead: List<String>,
+    val chapterIdsUnread: List<String>,
+)
+
+@Serializable
+internal data class UserDto(
+    val id: String,
+    val attributes: UserAttributesDto = UserAttributesDto(),
+)
+
+@Serializable
+internal data class UserAttributesDto(
+    val username: String = "",
+)
+
+/** The token endpoint's answer (Keycloak): tokens on success, `error` on failure. */
+@Serializable
+internal data class TokenDto(
+    @SerialName("access_token") val accessToken: String? = null,
+    @SerialName("refresh_token") val refreshToken: String? = null,
+    @SerialName("expires_in") val expiresIn: Long = 0,
+    @SerialName("refresh_expires_in") val refreshExpiresIn: Long = 0,
+    val error: String? = null,
+    @SerialName("error_description") val errorDescription: String? = null,
 )
 
 @Serializable

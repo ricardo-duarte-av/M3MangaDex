@@ -20,6 +20,9 @@ internal interface DataModule {
     @Binds
     fun readingRepository(impl: DefaultReadingRepository): ReadingRepository
 
+    @Binds
+    fun libraryRepository(impl: DefaultLibraryRepository): LibraryRepository
+
     companion object {
         @Provides
         @Singleton
